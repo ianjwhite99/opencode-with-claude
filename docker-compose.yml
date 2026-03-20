@@ -1,0 +1,38 @@
+services:
+  opencode:
+    build:
+      context: .
+      network: host
+    image: opencode-with-claude
+    container_name: opencode-with-claude
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    user: root
+    ports:
+      - "4096:4096"    # OpenCode web UI
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      # Persistent OpenCode data
+      - opencode-data:/home/opencode/.local/share/opencode
+      - opencode-state:/home/opencode/.local/state/opencode
+      - opencode-cache:/home/opencode/.cache/opencode
+      - opencode-config:/home/opencode/.config/opencode
+      # Claude auth persistence
+      - claude-auth:/home/opencode/.claude
+      # Workspace
+      - ~/workspace:/home/opencode/workspace
+      # SSH & Git (read-only from host)
+      - ~/.ssh:/tmp/.ssh:ro
+      - ~/.gitconfig:/tmp/.gitconfig:ro
+
+volumes:
+  opencode-data:
+  opencode-state:
+  opencode-cache:
+  opencode-config:
+  claude-auth:

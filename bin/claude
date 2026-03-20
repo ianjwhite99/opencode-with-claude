@@ -1,0 +1,5 @@
+#!/bin/bash
+# Wrapper to run claude inside the Docker container from the host.
+# Install: copy or symlink to a directory on your PATH, e.g.
+#   ln -s "$(pwd)/bin/claude" ~/.local/bin/claude
+exec docker exec -it opencode-with-claude claude "$@"

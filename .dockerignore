@@ -1,0 +1,23 @@
+# Dependencies (installed in build stage)
+node_modules
+proxy/node_modules
+
+# Tests (not needed in production image)
+proxy/src/__tests__
+
+# Git
+.git
+.gitignore
+
+# Docs
+*.md
+LICENSE
+
+# Local files
+workspace/
+.env
+.env.*
+*.log
+
+# Config not needed in image
+config/

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Wrapper to run opencode inside the Docker container from the host.
+# Install: copy or symlink to a directory on your PATH, e.g.
+#   ln -s "$(pwd)/bin/opencode" ~/.local/bin/opencode
+exec docker exec -it opencode-with-claude opencode "$@"
