@@ -1,4 +1,5 @@
 {
+  "repositoryUrl": "https://github.com/ianjwhite99/opencode-with-claude.git",
   "branches": ["main"],
   "plugins": [
     "@semantic-release/commit-analyzer",
@@ -7,7 +8,8 @@
     [
       "@semantic-release/npm",
       {
-        "npmPublish": true
+        "npmPublish": true,
+        "access": "public"
       }
     ],
     [
