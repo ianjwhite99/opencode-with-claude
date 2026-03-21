@@ -165,16 +165,36 @@ case "$raw_os" in
 esac
 ok "OS: $os ($(uname -m))"
 
-# Check for Node.js
+# Check for a JavaScript runtime (Node.js, Bun, or Deno)
+JS_RUNTIME=""
 if command -v node &>/dev/null; then
-    node_version=$(node --version)
-    node_major=$(echo "$node_version" | sed 's/v//' | cut -d. -f1)
-    if [[ "$node_major" -lt 18 ]]; then
-        fail "Node.js >= 18 required (found $node_version). Update at https://nodejs.org"
+    node_version=$(node --version 2>/dev/null || echo "")
+    if [[ -n "$node_version" ]]; then
+        node_major=$(echo "$node_version" | sed 's/v//' | cut -d. -f1)
+        if [[ "$node_major" -ge 18 ]]; then
+            JS_RUNTIME="node"
+            ok "Node.js $node_version"
+        else
+            warn "Node.js $node_version found but >= 18 recommended"
+        fi
     fi
-    ok "Node.js $node_version"
-else
-    fail "Node.js is required but not installed. Install from https://nodejs.org"
+fi
+if [[ -z "$JS_RUNTIME" ]] && command -v bun &>/dev/null; then
+    bun_version=$(bun --version 2>/dev/null || echo "")
+    if [[ -n "$bun_version" ]]; then
+        JS_RUNTIME="bun"
+        ok "Bun $bun_version"
+    fi
+fi
+if [[ -z "$JS_RUNTIME" ]] && command -v deno &>/dev/null; then
+    deno_version=$(deno --version 2>/dev/null | head -1 || echo "")
+    if [[ -n "$deno_version" ]]; then
+        JS_RUNTIME="deno"
+        ok "Deno $deno_version"
+    fi
+fi
+if [[ -z "$JS_RUNTIME" ]]; then
+    fail "A JavaScript runtime is required (Node.js >= 18, Bun, or Deno). Install one and retry."
 fi
 
 # Check for curl (needed for health checks in launcher)
@@ -345,8 +365,8 @@ OPENCODE_AUTH_FILE="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/auth.json"
 
 if [ -f "$OPENCODE_AUTH_FILE" ] && grep -q '"anthropic"' "$OPENCODE_AUTH_FILE" 2>/dev/null; then
     info "Found existing Anthropic credentials in OpenCode auth, removing..."
-    # Remove the anthropic key from auth.json using node (available since we checked for it)
-    node -e "
+
+    _js_code="
         const fs = require('fs');
         const path = '$OPENCODE_AUTH_FILE';
         try {
@@ -359,8 +379,22 @@ if [ -f "$OPENCODE_AUTH_FILE" ] && grep -q '"anthropic"' "$OPENCODE_AUTH_FILE" 2
         } catch (e) {
             console.error('Warning: Could not update auth file:', e.message);
         }
-    " 2>/dev/null
-    ok "Anthropic credentials removed (proxy will handle auth)"
+    "
+
+    _auth_cleared=false
+    if [[ "$JS_RUNTIME" == "node" ]]; then
+        node -e "$_js_code" 2>/dev/null && _auth_cleared=true
+    elif [[ "$JS_RUNTIME" == "bun" ]]; then
+        bun -e "$_js_code" 2>/dev/null && _auth_cleared=true
+    elif [[ "$JS_RUNTIME" == "deno" ]]; then
+        deno eval "$_js_code" 2>/dev/null && _auth_cleared=true
+    fi
+
+    if [[ "$_auth_cleared" == "true" ]]; then
+        ok "Anthropic credentials removed (proxy will handle auth)"
+    else
+        warn "Could not update auth file. Manually remove 'anthropic' key from $OPENCODE_AUTH_FILE"
+    fi
 else
     info "No existing Anthropic credentials in OpenCode — skipping"
 fi
