@@ -69,27 +69,33 @@ else
   fail "No supported package manager found. Install one of: bun, npm, pnpm, yarn"
 fi
 
-# --- Install Claude Code CLI ---
+# --- Install/Update Claude Code CLI ---
 if command -v claude &>/dev/null; then
-  ok "Claude Code CLI already installed"
+  info "Claude Code CLI already installed, updating to latest..."
+  $pkg_install_global @anthropic-ai/claude-code
+  ok "Claude Code CLI updated"
 else
   info "Installing Claude Code CLI..."
   $pkg_install_global @anthropic-ai/claude-code
   ok "Claude Code CLI installed"
 fi
 
-# --- Install OpenCode ---
+# --- Install/Update OpenCode ---
 if command -v opencode &>/dev/null; then
-  ok "OpenCode already installed"
+  info "OpenCode already installed, updating to latest..."
+  $pkg_install_global opencode-ai
+  ok "OpenCode updated"
 else
   info "Installing OpenCode..."
   $pkg_install_global opencode-ai
   ok "OpenCode installed"
 fi
 
-# --- Install opencode-claude-max-proxy ---
+# --- Install/Update opencode-claude-max-proxy ---
 if command -v claude-max-proxy &>/dev/null; then
-  ok "claude-max-proxy already installed"
+  info "claude-max-proxy already installed, updating to latest..."
+  $pkg_install_global opencode-claude-max-proxy
+  ok "claude-max-proxy updated"
 else
   info "Installing opencode-claude-max-proxy..."
   $pkg_install_global opencode-claude-max-proxy

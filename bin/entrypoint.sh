@@ -74,6 +74,20 @@ else
   echo "[opencode-with-claude] Starting without auth. Proxy will fail until you log in."
 fi
 
+# --- Auto-update components if requested ---
+if [ "${OC_AUTO_UPDATE:-}" = "true" ] || [ "${OC_AUTO_UPDATE:-}" = "1" ]; then
+  echo "[opencode-with-claude] Auto-updating components..."
+  npm install -g @anthropic-ai/claude-code opencode-ai opencode-claude-max-proxy 2>&1 | tail -5
+  echo "[opencode-with-claude] Update complete."
+fi
+
+# --- Auto-update components if requested ---
+if [ "${OC_AUTO_UPDATE:-}" = "true" ] || [ "${OC_AUTO_UPDATE:-}" = "1" ]; then
+  echo "[opencode-with-claude] Auto-updating components..."
+  npm install -g @anthropic-ai/claude-code opencode-ai opencode-claude-max-proxy 2>&1 | tail -5
+  echo "[opencode-with-claude] Update complete."
+fi
+
 # --- Start proxy in background ---
 # Unset vars that would cause the SDK subprocess to loop back to the proxy
 unset ANTHROPIC_BASE_URL ANTHROPIC_API_KEY 2>/dev/null || true

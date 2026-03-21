@@ -33,6 +33,7 @@ if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
     echo "Usage:"
     echo "  oc              Start OpenCode in TUI mode"
     echo "  oc web          Start OpenCode web UI (port 4096)"
+    echo "  oc update       Update all components to latest versions"
     echo "  oc [args...]    Pass any arguments to opencode"
     echo "  oc --help       Show this help"
     echo "  oc --version    Show component versions"
@@ -46,6 +47,168 @@ if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
     echo "  oc                      # Start TUI in current directory"
     echo "  oc web                  # Start web UI on http://localhost:4096"
     echo "  cd ~/my-project && oc   # Work on a specific project"
+    exit 0
+fi
+
+# --- Update ---
+if [[ "${1:-}" == "update" ]]; then
+    info "Detecting package manager..."
+
+    pkg_manager=""
+    pkg_update_global=""
+
+    if command -v bun &>/dev/null; then
+        pkg_manager="bun"
+        pkg_update_global="bun install -g"
+    elif command -v npm &>/dev/null; then
+        pkg_manager="npm"
+        pkg_update_global="npm install -g"
+    elif command -v pnpm &>/dev/null; then
+        pkg_manager="pnpm"
+        pkg_update_global="pnpm install -g"
+    elif command -v yarn &>/dev/null; then
+        pkg_manager="yarn"
+        pkg_update_global="yarn global add"
+    else
+        fail "No supported package manager found. Install one of: bun, npm, pnpm, yarn"
+    fi
+
+    ok "Using $pkg_manager"
+
+    PACKAGES=("@anthropic-ai/claude-code" "opencode-ai" "opencode-claude-max-proxy")
+    BINS=("claude" "opencode" "claude-max-proxy")
+    LABELS=("Claude Code CLI" "OpenCode" "Claude Max Proxy")
+
+    # Collect current versions
+    echo ""
+    info "Current versions:"
+    old_versions=()
+    for i in "${!BINS[@]}"; do
+        ver=$("${BINS[$i]}" --version 2>/dev/null || echo "not installed")
+        old_versions+=("$ver")
+        echo "  ${LABELS[$i]}: $ver"
+    done
+
+    # Run the update
+    echo ""
+    info "Updating all components..."
+    for i in "${!PACKAGES[@]}"; do
+        info "Updating ${LABELS[$i]}..."
+        if $pkg_update_global "${PACKAGES[$i]}" 2>&1 | tail -3; then
+            ok "${LABELS[$i]} updated"
+        else
+            warn "Failed to update ${LABELS[$i]}. Try manually: $pkg_update_global ${PACKAGES[$i]}"
+        fi
+    done
+
+    # Show new versions
+    echo ""
+    info "Updated versions:"
+    for i in "${!BINS[@]}"; do
+        new_ver=$("${BINS[$i]}" --version 2>/dev/null || echo "not installed")
+        if [[ "$new_ver" != "${old_versions[$i]}" ]]; then
+            ok "${LABELS[$i]}: ${old_versions[$i]} -> $new_ver"
+        else
+            echo "  ${LABELS[$i]}: $new_ver (unchanged)"
+        fi
+    done
+
+    # Also update the oc launcher itself from GitHub
+    echo ""
+    info "Updating oc launcher..."
+    OC_INSTALL_DIR="$HOME/.opencode/bin"
+    OC_LAUNCHER_URL="https://raw.githubusercontent.com/ianjwhite99/opencode-with-claude/main/bin/oc"
+    if curl -fsSL "$OC_LAUNCHER_URL" -o "$OC_INSTALL_DIR/oc.tmp" 2>/dev/null; then
+        chmod 755 "$OC_INSTALL_DIR/oc.tmp"
+        mv "$OC_INSTALL_DIR/oc.tmp" "$OC_INSTALL_DIR/oc"
+        ok "oc launcher updated"
+    else
+        warn "Could not update oc launcher (network error or not installed via installer)"
+    fi
+
+    echo ""
+    ok "Update complete!"
+    exit 0
+fi
+
+# --- Update ---
+if [[ "${1:-}" == "update" ]]; then
+    info "Detecting package manager..."
+
+    pkg_manager=""
+    pkg_update_global=""
+
+    if command -v bun &>/dev/null; then
+        pkg_manager="bun"
+        pkg_update_global="bun install -g"
+    elif command -v npm &>/dev/null; then
+        pkg_manager="npm"
+        pkg_update_global="npm install -g"
+    elif command -v pnpm &>/dev/null; then
+        pkg_manager="pnpm"
+        pkg_update_global="pnpm install -g"
+    elif command -v yarn &>/dev/null; then
+        pkg_manager="yarn"
+        pkg_update_global="yarn global add"
+    else
+        fail "No supported package manager found. Install one of: bun, npm, pnpm, yarn"
+    fi
+
+    ok "Using $pkg_manager"
+
+    PACKAGES=("@anthropic-ai/claude-code" "opencode-ai" "opencode-claude-max-proxy")
+    BINS=("claude" "opencode" "claude-max-proxy")
+    LABELS=("Claude Code CLI" "OpenCode" "Claude Max Proxy")
+
+    # Collect current versions
+    echo ""
+    info "Current versions:"
+    old_versions=()
+    for i in "${!BINS[@]}"; do
+        ver=$("${BINS[$i]}" --version 2>/dev/null || echo "not installed")
+        old_versions+=("$ver")
+        echo "  ${LABELS[$i]}: $ver"
+    done
+
+    # Run the update
+    echo ""
+    info "Updating all components..."
+    for i in "${!PACKAGES[@]}"; do
+        info "Updating ${LABELS[$i]}..."
+        if $pkg_update_global "${PACKAGES[$i]}" 2>&1 | tail -3; then
+            ok "${LABELS[$i]} updated"
+        else
+            warn "Failed to update ${LABELS[$i]}. Try manually: $pkg_update_global ${PACKAGES[$i]}"
+        fi
+    done
+
+    # Show new versions
+    echo ""
+    info "Updated versions:"
+    for i in "${!BINS[@]}"; do
+        new_ver=$("${BINS[$i]}" --version 2>/dev/null || echo "not installed")
+        if [[ "$new_ver" != "${old_versions[$i]}" ]]; then
+            ok "${LABELS[$i]}: ${old_versions[$i]} -> $new_ver"
+        else
+            echo "  ${LABELS[$i]}: $new_ver (unchanged)"
+        fi
+    done
+
+    # Also update the oc launcher itself from GitHub
+    echo ""
+    info "Updating oc launcher..."
+    OC_INSTALL_DIR="$HOME/.opencode/bin"
+    OC_LAUNCHER_URL="https://raw.githubusercontent.com/ianjwhite99/opencode-with-claude/main/bin/oc"
+    if curl -fsSL "$OC_LAUNCHER_URL" -o "$OC_INSTALL_DIR/oc.tmp" 2>/dev/null; then
+        chmod 755 "$OC_INSTALL_DIR/oc.tmp"
+        mv "$OC_INSTALL_DIR/oc.tmp" "$OC_INSTALL_DIR/oc"
+        ok "oc launcher updated"
+    else
+        warn "Could not update oc launcher (network error or not installed via installer)"
+    fi
+
+    echo ""
+    ok "Update complete!"
     exit 0
 fi
 
