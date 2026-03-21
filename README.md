@@ -271,10 +271,6 @@ opencode-with-claude/
 
 No. The proxy authenticates through your Claude Max subscription via `claude login`. The `ANTHROPIC_API_KEY=dummy` value is just a placeholder that OpenCode requires to be set — it's never actually used.
 
-**Does this work with [oh-my-opencode](https://github.com/nichochar/oh-my-opencode)?**
-
-Yes. The proxy runs in passthrough mode by default, which means OpenCode handles all tool execution and agent routing. Any agents you configure (including oh-my-opencode's multi-model routing) work as expected.
-
 **What happens if my Claude Max subscription expires?**
 
 The proxy will fail to authenticate. Run `claude auth status` to check. You'll need an active Claude Max ($100/mo) or Claude Max with Team ($200/mo) subscription.
