@@ -2,9 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription — no API credits needed.
-
-One command to install. One command to run.
+Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription.
 
 ## How It Works
 
