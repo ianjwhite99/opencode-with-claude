@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-An [OpenCode plugin](https://opencode.ai/docs/plugins/) that lets you use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription.
+Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription.
 
 ## How It Works
 
@@ -16,18 +16,22 @@ An [OpenCode plugin](https://opencode.ai/docs/plugins/) that lets you use [OpenC
 
 [OpenCode](https://opencode.ai) speaks the Anthropic REST API. Claude Max provides access via the [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) (not the REST API). The [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) bridges the gap — it accepts API requests from OpenCode and translates them into Agent SDK calls using your Claude Max session.
 
-This plugin manages the proxy lifecycle automatically: it starts the proxy when OpenCode launches, health-checks it, and cleans up on exit.
-
 ## Quick Start
 
-### 1. Authenticate with Claude (one-time)
+There are two ways to get started: the **plugin** (recommended) or the **standalone installer**.
+
+### Option A: OpenCode Plugin (recommended)
+
+The plugin manages the proxy lifecycle automatically — it starts the proxy when OpenCode launches, health-checks it, and cleans up on exit.
+
+**1. Authenticate with Claude (one-time)**
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 claude login
 ```
 
-### 2. Add to your `opencode.json`
+**2. Add to your `opencode.json`**
 
 Global (`~/.config/opencode/opencode.json`) or project-level:
 
@@ -46,7 +50,7 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 }
 ```
 
-### 3. Run OpenCode
+**3. Run OpenCode**
 
 ```bash
 opencode
@@ -54,16 +58,84 @@ opencode
 
 That's it. The plugin handles everything.
 
+### Option B: Standalone Installer (`oc` launcher)
+
+A one-liner that installs all dependencies and gives you the `oc` command — no config files to edit.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ianjwhite99/opencode-with-claude/main/install.sh | bash
+```
+
+This installs:
+- [Claude Code CLI](https://www.npmjs.com/package/@anthropic-ai/claude-code) — authentication with Claude
+- [OpenCode](https://www.npmjs.com/package/opencode-ai) — the coding assistant
+- [opencode-claude-max-proxy](https://www.npmjs.com/package/opencode-claude-max-proxy) — bridges OpenCode to Claude Max
+- **`oc`** — launcher that ties it all together
+
+Then run:
+
+```bash
+cd your-project
+oc
+```
+
+The `oc` command starts the proxy in the background, waits for it to be ready, and launches OpenCode.
+
 ## Prerequisites
 
-- **Node.js >= 18** — [nodejs.org](https://nodejs.org)
+- **Node.js >= 18** — [nodejs.org](https://nodejs.org) (or Bun/Deno)
 - **Claude Max subscription** — the $100/mo plan on [claude.ai](https://claude.ai)
+
+## `oc` Launcher Reference
+
+The `oc` launcher handles everything — starts the proxy, waits for health, launches OpenCode, and cleans up on exit:
+
+```bash
+oc              # Start OpenCode TUI in current directory
+oc web          # Start OpenCode web UI on port 4096
+oc update       # Update all components to latest versions
+oc --help       # Show help
+oc --version    # Show component versions
+```
+
+All arguments are passed through to `opencode`, so anything that works with `opencode` works with `oc`.
+
+### Installer Options
+
+```bash
+# Skip the Claude login prompt
+curl -fsSL ... | bash -s -- --no-auth
+
+# Don't modify shell PATH
+curl -fsSL ... | bash -s -- --no-modify-path
+
+# Show help
+curl -fsSL ... | bash -s -- --help
+```
+
+### Uninstalling
+
+Remove the `oc` launcher and clean up PATH entries:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ianjwhite99/opencode-with-claude/main/install.sh | bash -s -- --uninstall
+```
+
+This removes the `oc` launcher from `~/.opencode/bin` and cleans up any PATH entries added to your shell config. To also remove the underlying tools:
+
+```bash
+npm uninstall -g @anthropic-ai/claude-code opencode-ai opencode-claude-max-proxy
+```
 
 ## Configuration
 
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CLAUDE_PROXY_PORT` | `3456` | Port for the proxy server (must match `baseURL` in config) |
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CLAUDE_PROXY_PORT` | `3456` (plugin) / random (`oc`) | Port for the proxy server |
+| `CLAUDE_PROXY_WORKDIR` | `$PWD` | Working directory for the proxy |
+| `OC_SKIP_AUTH_CHECK` | unset | Set to `1` to skip Claude auth check on `oc` launch |
 
 ## Troubleshooting
 
@@ -93,6 +165,20 @@ The proxy takes a moment to initialize. If this persists:
 - Ensure `claude auth status` shows `loggedIn: true`
 - Check your internet connection
 
+### Updating components
+
+With the `oc` launcher:
+
+```bash
+oc update
+```
+
+With the plugin, update the underlying packages directly:
+
+```bash
+npm install -g @anthropic-ai/claude-code opencode-ai opencode-claude-max-proxy
+```
+
 ## Development
 
 ### Project Structure
@@ -101,6 +187,9 @@ The proxy takes a moment to initialize. If this persists:
 opencode-with-claude/
 ├── src/
 │   └── index.ts           # Plugin entry point
+├── bin/
+│   └── oc                 # Standalone launcher
+├── install.sh             # curl | bash installer
 ├── test/
 │   ├── run.sh             # Test runner
 │   └── opencode.json      # Test config
@@ -122,8 +211,6 @@ npm run build
 ./test/run.sh --clean      # Remove build artifacts
 ```
 
-The test script builds the plugin, creates a temp workspace with `.opencode/plugins/` configured, and launches OpenCode with the plugin loaded locally.
-
 ## FAQ
 
 **Do I need an Anthropic API key?**
@@ -133,6 +220,14 @@ No. The proxy authenticates through your Claude Max subscription via `claude log
 **What happens if my Claude Max subscription expires?**
 
 The proxy will fail to authenticate. Run `claude auth status` to check. You'll need an active Claude Max ($100/mo) or Claude Max with Team ($200/mo) subscription.
+
+**Plugin or `oc` — which should I use?**
+
+The plugin is recommended if you already use OpenCode. It integrates with OpenCode's plugin system and requires no extra commands. Use the `oc` launcher if you want a one-command install from scratch or prefer not to edit config files.
+
+**Can I use this with multiple projects at the same time?**
+
+Yes. The `oc` launcher assigns a random port for each terminal session. The plugin uses a fixed port (`3456` by default), so configure `CLAUDE_PROXY_PORT` if running multiple instances.
 
 **Is this the same as using the Anthropic API?**
 
