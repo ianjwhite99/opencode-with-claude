@@ -1,0 +1,37 @@
+{
+  "name": "opencode-with-claude",
+  "version": "1.0.0",
+  "description": "OpenCode plugin to use your Claude Max subscription via local proxy",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "./test/run.sh",
+    "test:clean": "./test/run.sh --clean",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "opencode-claude-max-proxy": "latest"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "latest",
+    "@types/node": "^25.5.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "claude",
+    "claude-max",
+    "proxy"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ianjwhite99/opencode-with-claude"
+  }
+}

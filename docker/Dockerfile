@@ -29,7 +29,7 @@ RUN useradd -m -s /bin/bash -u 1001 opencode \
 USER opencode
 WORKDIR /home/opencode
 
-COPY --chown=opencode:opencode --chmod=755 bin/entrypoint.sh /home/opencode/entrypoint.sh
+COPY --chown=opencode:opencode --chmod=755 docker/entrypoint.sh /home/opencode/entrypoint.sh
 
 ENV CLAUDE_PROXY_PASSTHROUGH=1 \
     CLAUDE_PROXY_HOST=127.0.0.1 \
