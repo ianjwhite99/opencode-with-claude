@@ -15,10 +15,10 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "opencode-claude-max-proxy": "latest"
+    "opencode-claude-max-proxy": "^1.12.1"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "latest",
+    "@opencode-ai/plugin": "^1.2.27",
     "@types/node": "^25.5.0",
     "typescript": "^5.0.0"
   },
