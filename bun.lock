@@ -5,7 +5,7 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "opencode-claude-max-proxy": "^1.13.6",
+        "opencode-claude-max-proxy": "^1.15.0",
       },
       "devDependencies": {
         "@opencode-ai/plugin": "^1.3.0",
