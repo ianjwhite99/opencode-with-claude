@@ -14,42 +14,33 @@ env:
 jobs:
   release-please:
     runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: node
 
-      - name: Auto-merge release PR
-        if: ${{ steps.release.outputs.pr }}
-        run: gh pr merge ${{ fromJSON(steps.release.outputs.pr).number }} --squash --auto
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-
-  publish:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.release_created }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           registry-url: "https://registry.npmjs.org"
+        if: ${{ steps.release.outputs.release_created }}
 
       - name: Install dependencies
         run: npm ci
+        if: ${{ steps.release.outputs.release_created }}
 
       - name: Build
         run: npm run build
+        if: ${{ steps.release.outputs.release_created }}
 
       - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: ${{ steps.release.outputs.release_created }}
