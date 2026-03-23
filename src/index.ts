@@ -1,6 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { spawn, type ChildProcess } from "child_process"
-import { accessSync, constants } from "fs"
+import { createHash } from "crypto"
 import { createRequire } from "module"
 import { tmpdir } from "os"
 import path from "path"
@@ -37,27 +37,6 @@ function resolveProxyCommand(proxyBin: string): {
   command: string
   args: string[]
 } {
-  const shimName = process.platform === "win32"
-    ? "claude-max-proxy.cmd"
-    : "claude-max-proxy"
-  const shimPath = path.resolve(
-    path.dirname(proxyBin),
-    "..",
-    "..",
-    ".bin",
-    shimName
-  )
-
-  try {
-    accessSync(shimPath, constants.F_OK)
-    return {
-      command: shimPath,
-      args: [],
-    }
-  } catch {
-    // Fall through to direct execution.
-  }
-
   const extension = path.extname(proxyBin).toLowerCase()
 
   if (extension === ".js" || extension === ".cjs" || extension === ".mjs") {
@@ -189,10 +168,14 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
 
   // 4. Pick port
   const port = parseInt(process.env.CLAUDE_PROXY_PORT || "", 10) || DEFAULT_PORT
+  const sessionScope = createHash("sha256")
+    .update(directory)
+    .digest("hex")
+    .slice(0, 16)
   const sessionDir = path.join(
     tmpdir(),
     "opencode-with-claude",
-    `proxy-sessions-${process.pid}`
+    `proxy-sessions-${sessionScope}`
   )
 
   // 5. Spawn proxy
