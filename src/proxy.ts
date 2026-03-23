@@ -1,4 +1,5 @@
 import { startProxyServer } from "opencode-claude-max-proxy"
+import type { AddressInfo } from "net"
 import type { LogFn } from "./logger.js"
 
 const IS_WINDOWS = process.platform === "win32"
@@ -8,27 +9,90 @@ const IS_WINDOWS = process.platform === "win32"
 // ---------------------------------------------------------------------------
 
 export interface StartProxyOptions {
-  port: number
+  port?: number
   log: LogFn
 }
+
+export interface ProxyHandle {
+  port: number
+  close(): Promise<void>
+}
+
+const DEFAULT_PORT = 3456
 
 /**
  * Start the Claude Max proxy using the programmatic API.
  *
- * Returns the ProxyInstance which exposes `close()` for graceful shutdown.
+ * Tries the preferred port first (default 3456). If that port is already
+ * in use, falls back to port 0 so the OS assigns a free port. This keeps
+ * the port predictable for single-instance users while allowing multiple
+ * opencode instances to coexist without conflicts.
+ *
+ * The upstream proxy unconditionally writes `[PROXY]` lines to
+ * console.error, so we patch it for the duration of the call and
+ * redirect those messages through the plugin logger instead.
  */
-export async function startProxy(opts: StartProxyOptions) {
-  const { port, log } = opts
+export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
+  const { port = DEFAULT_PORT, log } = opts
 
-  const proxy = await startProxyServer({
-    port,
-    host: "127.0.0.1",
-    silent: true,
-  })
+  const origError = console.error
+  console.error = (...args: unknown[]) => {
+    const msg = args.map(String).join(" ")
+    if (msg.startsWith("[PROXY]")) {
+      void log("debug", msg)
+      return
+    }
+    origError.apply(console, args)
+  }
 
-  await log("info", `Claude Max proxy running on port ${proxy.config.port}`)
+  const attempt = async (p: number) => {
+    try {
+      return await startProxyServer({
+        port: p,
+        host: "127.0.0.1",
+        silent: true,
+      })
+    } catch (err) {
+      if (
+        p !== 0 &&
+        err instanceof Error &&
+        "code" in err &&
+        err.code === "EADDRINUSE"
+      ) {
+        await log(
+          "info",
+          `Port ${p} in use, starting on a random port instead...`
+        )
+        return startProxyServer({
+          port: 0,
+          host: "127.0.0.1",
+          silent: true,
+        })
+      }
+      throw err
+    }
+  }
 
-  return proxy
+  let proxy: Awaited<ReturnType<typeof startProxyServer>>
+  try {
+    proxy = await attempt(port)
+  } catch (err) {
+    console.error = origError
+    throw err
+  }
+
+  const addr = proxy.server.address() as AddressInfo
+  const actualPort = addr.port
+
+  await log("info", `Claude Max proxy running on port ${actualPort}`)
+
+  return {
+    port: actualPort,
+    close: async () => {
+      console.error = origError
+      await proxy.close()
+    },
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -41,9 +105,7 @@ export async function startProxy(opts: StartProxyOptions) {
  * - `exit` and `SIGINT` work on all platforms.
  * - `SIGTERM` is only available on POSIX systems.
  */
-export function registerCleanup(
-  proxy: Awaited<ReturnType<typeof startProxy>>
-): void {
+export function registerCleanup(proxy: ProxyHandle): void {
   let cleaned = false
 
   const cleanup = () => {

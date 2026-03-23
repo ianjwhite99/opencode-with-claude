@@ -58,7 +58,7 @@ ok "Build complete"
 WORK_DIR=$(mktemp -d)
 info "Test workspace: $WORK_DIR"
 
-# Copy opencode.json (provider config only, no plugin array needed for local plugins)
+# Copy opencode.json (the plugin's config hook handles provider setup automatically)
 cp "$SCRIPT_DIR/opencode.json" "$WORK_DIR/opencode.json"
 
 # Set up .opencode/plugins/ with symlink to built plugin
@@ -82,6 +82,7 @@ trap cleanup EXIT
 # --- Launch OpenCode ---
 info "Launching OpenCode with local plugin..."
 info "Plugin: $PLUGIN_DIR/dist/index.js -> .opencode/plugins/claude-proxy.js"
+info "The plugin will start its own proxy on an OS-assigned port."
 info ""
 
 (cd "$WORK_DIR" && opencode "$@")

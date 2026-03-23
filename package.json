@@ -32,6 +32,6 @@
   "type": "module",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "opencode-claude-max-proxy": "^1.13.5"
+    "opencode-claude-max-proxy": "^1.13.6"
   }
 }
