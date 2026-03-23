@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.0.1...v1.0.2) (2026-03-23)
+
+
+### Bug Fixes
+
+* Windows compatibility, code cleanup, and module extraction ([#16](https://github.com/ianjwhite99/opencode-with-claude/issues/16)) ([e544b28](https://github.com/ianjwhite99/opencode-with-claude/commit/e544b28c2264196ba460058b5d459e8cb7db5471))
+
 ## [1.0.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.0.0...v1.0.1) (2026-03-23)
 
 
