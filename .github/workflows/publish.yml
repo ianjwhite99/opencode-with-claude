@@ -29,13 +29,13 @@ jobs:
           registry-url: "https://registry.npmjs.org"
         if: ${{ steps.release.outputs.release_created }}
 
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
         if: ${{ steps.release.outputs.release_created }}
 
-      - run: npm run build
+      - run: bun install --frozen-lockfile
         if: ${{ steps.release.outputs.release_created }}
 
-      - run: npm test
+      - run: bun run build
         if: ${{ steps.release.outputs.release_created }}
 
       - run: npm publish --access public --provenance
