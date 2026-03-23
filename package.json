@@ -1,6 +1,6 @@
 {
   "name": "opencode-with-claude",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenCode plugin to use your Claude Max subscription via local proxy",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
