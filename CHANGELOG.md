@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.0...v1.1.1) (2026-03-23)
+
+
+### Bug Fixes
+
+* use bun instead of npm in release workflow ([#27](https://github.com/ianjwhite99/opencode-with-claude/issues/27)) ([9080992](https://github.com/ianjwhite99/opencode-with-claude/commit/90809929aa16102c498d6513e72c3e397effbd3c))
+
 ## [1.1.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.0.3...v1.1.0) (2026-03-23)
 
 
