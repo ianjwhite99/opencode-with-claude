@@ -8,6 +8,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
@@ -18,6 +21,13 @@ jobs:
         id: release
         with:
           release-type: node
+
+      - name: Auto-merge release PR
+        if: ${{ steps.release.outputs.pr }}
+        run: gh pr merge ${{ fromJSON(steps.release.outputs.pr).number }} --squash --auto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
 
   publish:
     needs: release-please
