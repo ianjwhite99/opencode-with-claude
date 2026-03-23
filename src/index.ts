@@ -1,6 +1,10 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import { spawn, type ChildProcess } from "child_process"
+import { accessSync, constants } from "fs"
 import { createRequire } from "module"
+import { tmpdir } from "os"
+import path from "path"
+import type { Readable } from "stream"
 
 const DEFAULT_PORT = 3456
 const HEALTH_TIMEOUT_MS = 10_000
@@ -14,7 +18,7 @@ function resolveProxyBin(): string {
   const proxyPkgPath = require.resolve(
     "opencode-claude-max-proxy/package.json"
   )
-  const proxyDir = proxyPkgPath.replace(/\/package\.json$/, "")
+  const proxyDir = path.dirname(proxyPkgPath)
   const proxyPkg = require(proxyPkgPath)
   const binEntries = proxyPkg.bin
   if (!binEntries || typeof binEntries !== "object") {
@@ -26,7 +30,47 @@ function resolveProxyBin(): string {
   if (!binPath) {
     throw new Error("claude-max-proxy package has no bin entry")
   }
-  return `${proxyDir}/${binPath}`
+  return path.join(proxyDir, binPath)
+}
+
+function resolveProxyCommand(proxyBin: string): {
+  command: string
+  args: string[]
+} {
+  const shimName = process.platform === "win32"
+    ? "claude-max-proxy.cmd"
+    : "claude-max-proxy"
+  const shimPath = path.resolve(
+    path.dirname(proxyBin),
+    "..",
+    "..",
+    ".bin",
+    shimName
+  )
+
+  try {
+    accessSync(shimPath, constants.F_OK)
+    return {
+      command: shimPath,
+      args: [],
+    }
+  } catch {
+    // Fall through to direct execution.
+  }
+
+  const extension = path.extname(proxyBin).toLowerCase()
+
+  if (extension === ".js" || extension === ".cjs" || extension === ".mjs") {
+    return {
+      command: process.execPath,
+      args: [proxyBin],
+    }
+  }
+
+  return {
+    command: proxyBin,
+    args: [],
+  }
 }
 
 /**
@@ -58,6 +102,37 @@ async function waitForHealth(
   )
 }
 
+function pipeProxyLogs(
+  stream: Readable | null,
+  level: "info" | "warn" | "error",
+  log: (level: "debug" | "info" | "warn" | "error", message: string) => Promise<unknown>
+): void {
+  if (!stream) return
+
+  stream.setEncoding("utf8")
+
+  let buffer = ""
+  stream.on("data", (chunk: string) => {
+    buffer += chunk
+    const lines = buffer.split(/\r?\n/)
+    buffer = lines.pop() ?? ""
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (trimmed) {
+        void log(level, `[proxy] ${trimmed}`)
+      }
+    }
+  })
+
+  stream.on("end", () => {
+    const trimmed = buffer.trim()
+    if (trimmed) {
+      void log(level, `[proxy] ${trimmed}`)
+    }
+  })
+}
+
 /**
  * OpenCode plugin that manages the Claude Max proxy lifecycle.
  *
@@ -79,7 +154,7 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
 
   // 1. Check claude CLI exists
   try {
-    await $`which claude`
+    await $`claude --version`
   } catch {
     throw new Error(
       "Claude Code CLI not found. Install it with: npm install -g @anthropic-ai/claude-code"
@@ -114,23 +189,44 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
 
   // 4. Pick port
   const port = parseInt(process.env.CLAUDE_PROXY_PORT || "", 10) || DEFAULT_PORT
+  const sessionDir = path.join(
+    tmpdir(),
+    "opencode-with-claude",
+    `proxy-sessions-${process.pid}`
+  )
 
   // 5. Spawn proxy
   await log("info", `Starting Claude Max proxy on port ${port}...`)
 
-  const proxy: ChildProcess = spawn(proxyBin, [], {
+  const { command, args } = resolveProxyCommand(proxyBin)
+  await log("info", `Launching proxy command: ${command}`)
+  await log("info", `Using proxy session dir: ${sessionDir}`)
+
+  const proxy: ChildProcess = spawn(command, args, {
+    cwd: directory,
     env: {
       ...process.env,
       CLAUDE_PROXY_PORT: String(port),
       CLAUDE_PROXY_PASSTHROUGH: "1",
+      CLAUDE_PROXY_SESSION_DIR: sessionDir,
       CLAUDE_PROXY_WORKDIR: directory,
     },
-    stdio: "ignore",
+    stdio: ["ignore", "pipe", "pipe"],
     detached: false,
   })
 
+  pipeProxyLogs(proxy.stdout, "info", log)
+  pipeProxyLogs(proxy.stderr, "error", log)
+
   proxy.on("error", (err: Error) => {
-    log("error", `Proxy process error: ${err.message}`)
+    void log("error", `Proxy process error: ${err.message}`)
+  })
+
+  proxy.on("exit", (code, signal) => {
+    void log(
+      code === 0 ? "info" : "warn",
+      `Proxy process exited with code ${code ?? "null"} signal ${signal ?? "null"}`
+    )
   })
 
   // 6. Wait for health
