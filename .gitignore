@@ -1,11 +1,82 @@
+# dependencies
 node_modules/
+
+# bun
+.bun/
+bun.lockb
+
+# build output
 dist/
-workspace/
+build/
+out/
+coverage/
+.tmp/
+temp/
+
+# TypeScript
+*.tsbuildinfo
+
+# environment variables
 .env
 .env.*
+!.env.example
+
+# logs
+logs/
 *.log
-*.bak
-*.swp
-*~
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# macOS
 .DS_Store
+
+# Windows
 Thumbs.db
+
+# editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# testing
+coverage/
+.nyc_output/
+
+# caches
+.cache/
+.parcel-cache/
+.eslintcache
+
+# framework outputs
+.next/
+.nuxt/
+.svelte-kit/
+.vercel/
+
+# misc
+*.pem
+*.pid
+*.seed
+
+# generated files
+*.tgz
+
+# sqlite / local db files
+*.sqlite
+*.sqlite3
+*.db
+
+# turbo
+.turbo/
+
+# local-only folders
+.local/
+
+# other package manager lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

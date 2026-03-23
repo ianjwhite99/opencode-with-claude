@@ -5,7 +5,7 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "opencode-claude-max-proxy": "^1.13.4",
+        "opencode-claude-max-proxy": "^1.13.5",
       },
       "devDependencies": {
         "@opencode-ai/plugin": "^1.3.0",
@@ -55,7 +55,7 @@
 
     "@types/node": ["@types/node@25.5.0", "", { "dependencies": { "undici-types": "~7.18.0" } }, "sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw=="],
 
-    "opencode-claude-max-proxy": ["opencode-claude-max-proxy@1.13.4", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "claude-max-proxy": "dist/cli.js" } }, "sha512-s6Xhsp/AzCxZ9lVTIuHX7VvDiW5TIpeY9oLLygTMxAuSWbNXPKJ3wcT61+tlZAlWdNqhFjro5jJARiGvu+ZV1w=="],
+    "opencode-claude-max-proxy": ["opencode-claude-max-proxy@1.13.5", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "claude-max-proxy": "dist/cli.js" } }, "sha512-J9/Iqt7Z344i6FVFWfNBelKIPH3/5P/Qh+E+STWeEskVOlwhWY6rcPwjW/tL5xIQnrQJwDEYIm1o31f6dHKA5Q=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
