@@ -15,7 +15,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "opencode-claude-max-proxy": "^1.12.1"
+    "opencode-claude-max-proxy": "^1.13.0"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.2.27",
