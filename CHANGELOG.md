@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.1...v1.1.2) (2026-03-24)
+
+
+### Bug Fixes
+
+* formatting in package.json license field ([#30](https://github.com/ianjwhite99/opencode-with-claude/issues/30)) ([cf92480](https://github.com/ianjwhite99/opencode-with-claude/commit/cf92480433d0c307a36133d9a2406a0a3b88eb66))
+* Update package.json with new fields and cleaned up scripts ([#29](https://github.com/ianjwhite99/opencode-with-claude/issues/29)) ([7d59cbd](https://github.com/ianjwhite99/opencode-with-claude/commit/7d59cbd7126ea5e35ab5aa4c54339880311d60e6))
+
 ## [1.1.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.0...v1.1.1) (2026-03-23)
 
 
