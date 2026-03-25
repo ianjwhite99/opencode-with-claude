@@ -4,6 +4,12 @@
 
 Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription.
 
+## Why?
+
+This is a wrapper on top of [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) with a key difference: instead of requiring you to start the proxy manually via the CLI or Docker, the OpenCode plugin manages the proxy lifecycle automatically. It spins up a dedicated proxy instance when OpenCode starts and tears it down on exit.
+
+Each OpenCode instance gets its own proxy on an OS-assigned port, which means multiple instances can run simultaneously without conflicts — and without hitting concurrent session timeouts that occur when all requests are funneled through a single proxy. The plugin also injects session tracking headers directly into API requests, so the proxy doesn't need to rely on fingerprint-based session matching.
+
 ## How It Works
 
 ```
@@ -14,15 +20,19 @@ Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) su
 └─────────────┘              └────────────────────┘       └─────────────────┘
 ```
 
-[OpenCode](https://opencode.ai) speaks the Anthropic REST API. Claude Max provides access via the [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) (not the REST API). The [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) bridges the gap — it accepts API requests from OpenCode and translates them into Agent SDK calls using your Claude Max session.
-
 ## Quick Start
 
-There are three ways to get started: the **plugin** (recommended), the **standalone installer**, or **Docker**.
+There are three ways to get started:
+
+| Option | Best for |
+|--------|----------|
+| **Plugin** (recommended) | You already use OpenCode and want a zero-config integration |
+| **Standalone installer (`oc`)** | You want a one-command setup from scratch with no config files to edit |
+| **Docker** | You want an isolated environment or want to run the web UI as a service |
 
 ### Option A: OpenCode Plugin (recommended)
 
-The plugin manages the proxy lifecycle automatically — it starts the proxy when OpenCode launches, configures the Anthropic provider, and cleans up on exit. Each OpenCode instance gets its own proxy on an OS-assigned port, so multiple instances can run simultaneously without conflicts.
+The plugin hooks into OpenCode's plugin system. When OpenCode launches, it starts the proxy, configures the Anthropic provider, and cleans everything up on exit.
 
 **1. Authenticate with Claude (one-time)**
 
@@ -50,7 +60,7 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 }
 ```
 
-The `apiKey` is a dummy value — authentication goes through your Claude Max session, not an API key. The `baseURL` points to the default proxy port (3456). If that port is already in use (e.g. another opencode instance), the plugin automatically starts the proxy on a different port and overrides the `baseURL` at runtime.
+> **Note:** The `apiKey` is a placeholder — authentication goes through your Claude Max session via `claude login`, not an API key. The `baseURL` is the default proxy port. If port 3456 is already in use (e.g., another OpenCode instance), the plugin automatically starts the proxy on a different port and overrides the `baseURL` at runtime.
 
 **3. Run OpenCode**
 
@@ -240,10 +250,6 @@ No. The proxy authenticates through your Claude Max subscription via `claude log
 **What happens if my Claude Max subscription expires?**
 
 The proxy will fail to authenticate. Run `claude auth status` to check. You'll need an active Claude Max ($100/mo) or Claude Max with Team ($200/mo) subscription.
-
-**Plugin, `oc`, or Docker — which should I use?**
-
-The **plugin** is recommended if you already use OpenCode — it integrates with OpenCode's plugin system and requires no extra commands. Use the **`oc` launcher** if you want a one-command install from scratch or prefer not to edit config files. Use **Docker** if you want an isolated environment or want to run the web UI as a service.
 
 **Can I use this with multiple projects at the same time?**
 
