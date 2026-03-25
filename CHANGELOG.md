@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.3...v1.1.4) (2026-03-25)
+
+
+### Bug Fixes
+
+* Update opencode-claude-max-proxy to version 1.17.0 ([#35](https://github.com/ianjwhite99/opencode-with-claude/issues/35)) ([ab6b0d4](https://github.com/ianjwhite99/opencode-with-claude/commit/ab6b0d438d785e90db596d237fad5ccf770b5d3b))
+
 ## [1.1.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.2...v1.1.3) (2026-03-24)
 
 
