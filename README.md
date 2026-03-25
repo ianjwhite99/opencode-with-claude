@@ -4,11 +4,15 @@
 
 Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) subscription.
 
-## Why?
+## What this is
 
-This is a wrapper on top of [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) with a key difference: instead of requiring you to start the proxy manually via the CLI or Docker, the OpenCode plugin manages the proxy lifecycle automatically. It spins up a dedicated proxy instance when OpenCode starts and tears it down on exit.
+An [OpenCode](https://opencode.ai) plugin that runs [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) for you: **start OpenCode once** and the proxy comes up with it; **quit OpenCode** and the proxy stops. No separate proxy CLI or Docker container to manage.
 
-Each OpenCode instance gets its own proxy on an OS-assigned port, which means multiple instances can run simultaneously without conflicts — and without hitting concurrent session timeouts that occur when all requests are funneled through a single proxy. The plugin also injects session tracking headers directly into API requests, so the proxy doesn't need to rely on fingerprint-based session matching.
+**Compared to running the proxy yourself:**
+
+- **One process to think about** — OpenCode owns the proxy lifecycle (start/stop) instead of you juggling two things.
+- **Several OpenCode windows at once** — each instance gets its own proxy on an OS-assigned port, so ports do not collide and you avoid session issues from sharing one proxy across instances.
+- **Explicit session headers** — the plugin adds session tracking on outgoing API calls, so the proxy does not have to infer sessions from fingerprints alone.
 
 ## How It Works
 
