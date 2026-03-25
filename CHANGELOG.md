@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.5...v1.1.6) (2026-03-25)
+
+
+### Bug Fixes
+
+* minify bundle & build ([#38](https://github.com/ianjwhite99/opencode-with-claude/issues/38)) ([07c8c24](https://github.com/ianjwhite99/opencode-with-claude/commit/07c8c24053f51febf0c7cce6364c97141d8c2798))
+
 ## [1.1.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.4...v1.1.5) (2026-03-25)
 
 
