@@ -31,7 +31,7 @@ The plugin hooks into OpenCode's plugin system. When OpenCode launches, it start
 **1. Authenticate with Claude (one-time)**
 
 ```bash
-npm install -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code opencode-with-claude
 claude login
 ```
 
