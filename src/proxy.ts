@@ -1,6 +1,5 @@
 import type { AddressInfo } from "net"
 import type { LogFn } from "./logger.js"
-import { restoreNativeGlobals } from "./native-globals.js"
 import { startProxyServer } from "opencode-claude-max-proxy"
 
 const IS_WINDOWS = process.platform === "win32"
@@ -69,9 +68,6 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
     console.error = origError
     throw err
   }
-
-  // serve() overrides globals again — restore
-  restoreNativeGlobals()
 
   const addr = proxy.server.address() as AddressInfo
   const actualPort = addr.port

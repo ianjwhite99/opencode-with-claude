@@ -85,4 +85,4 @@ info "Plugin: $PLUGIN_DIR/dist/index.js -> .opencode/plugins/claude-proxy.js"
 info "The plugin will start its own proxy on an OS-assigned port."
 info ""
 
-(cd "$WORK_DIR" && opencode "$@")
+(cd "$WORK_DIR" && opencode"$@")
