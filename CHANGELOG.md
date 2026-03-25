@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.8](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.7...v1.1.8) (2026-03-25)
+
+
+### Bug Fixes
+
+* update proxy dependency to fix upstream issue with bun request ([#44](https://github.com/ianjwhite99/opencode-with-claude/issues/44)) ([4d00f35](https://github.com/ianjwhite99/opencode-with-claude/commit/4d00f35d18f523b26e64bf7b379813fbe91d6e6d))
+
 ## [1.1.7](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.6...v1.1.7) (2026-03-25)
 
 
