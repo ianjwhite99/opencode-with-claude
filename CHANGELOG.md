@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.6...v1.1.7) (2026-03-25)
+
+
+### Bug Fixes
+
+* clean up readme and remove the docker/oc files ([#41](https://github.com/ianjwhite99/opencode-with-claude/issues/41)) ([560d04a](https://github.com/ianjwhite99/opencode-with-claude/commit/560d04a346d22f133b456c7c6600cc6e73c83f8d))
+
 ## [1.1.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.5...v1.1.6) (2026-03-25)
 
 
