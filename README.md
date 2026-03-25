@@ -119,23 +119,19 @@ npm run build
 
 **Do I need an Anthropic API key?**
 
-No. The proxy authenticates through your Claude Max subscription via `claude login`. The plugin automatically sets a dummy API key — it's never actually used for authentication.
+No. Claude Max is not authenticated with API keys here. Run `claude login` once; the proxy uses that session (Agent SDK via OAuth). OpenCode still expects an `apiKey` field, so the plugin supplies a placeholder — it is not used for real auth.
 
-**What happens if my Claude Max subscription expires?**
+**What if my Claude Max subscription lapses?**
 
-The proxy will fail to authenticate. Run `claude auth status` to check. You'll need an active Claude Max ($100/mo) or Claude Max with Team ($200/mo) subscription.
+The proxy will fail to authenticate. Run `claude auth status`. You need an active Claude Max plan; see [claude.ai](https://claude.ai) for current options and pricing.
 
-**Can I use this with multiple projects at the same time?**
+**Can I run several OpenCode instances at once?**
 
-Yes. The first instance uses port 3456 by default. Additional instances automatically fall back to a random OS-assigned port, so they all work simultaneously without any extra configuration.
+Yes. The first instance uses port **3456** by default; others get a free OS-assigned port, so nothing extra to configure.
 
-**Is this the same as using the Anthropic API?**
+**Is this the same as using the Anthropic API directly?**
 
-Not exactly. The proxy translates between the Anthropic REST API format and the Claude Agent SDK. From OpenCode's perspective it looks like the API, but under the hood it uses your Claude Max session. Rate limits are determined by your Claude Max subscription, not API tier limits.
-
-**Why `claude login` instead of an API key?**
-
-Claude Max doesn't provide API access. Authentication goes through the Claude Code CLI's OAuth flow, which grants an Agent SDK session token tied to your subscription.
+Not exactly. OpenCode speaks Anthropic-style HTTP to the local proxy; the proxy maps requests to the Claude Agent SDK and your Claude Max session. Usage limits follow your Max subscription, not Anthropic API billing tiers.
 
 ## Disclaimer
 
