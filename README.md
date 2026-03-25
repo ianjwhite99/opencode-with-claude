@@ -28,14 +28,20 @@ An [OpenCode](https://opencode.ai) plugin that runs [opencode-claude-max-proxy](
 
 The plugin hooks into OpenCode's plugin system. When OpenCode launches, it starts the proxy, configures the Anthropic provider, and cleans everything up on exit.
 
-**1. Authenticate with Claude (one-time)**
+**1. Install the plugin**
+
+```bash
+npm install -g opencode-with-claude
+```
+
+**2. Authenticate with Claude (one-time)**
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 claude login
 ```
 
-**2. Add to your `opencode.json`**
+**3. Add to your `opencode.json`**
 
 Global (`~/.config/opencode/opencode.json`) or project-level:
 

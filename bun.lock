@@ -5,12 +5,12 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "opencode-claude-max-proxy": "^1.17.0",
+        "opencode-claude-max-proxy": "^1.17.1",
       },
       "devDependencies": {
-        "@opencode-ai/plugin": "^1.3.0",
+        "@opencode-ai/plugin": "^1.3.2",
         "@types/node": "^25.5.0",
-        "tsup": "^8.4.0",
+        "tsup": "^8.5.1",
         "typescript": "^6.0.2",
       },
     },
@@ -110,9 +110,9 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.3.0", "", { "dependencies": { "@opencode-ai/sdk": "1.3.0", "zod": "4.1.8" } }, "sha512-mR1Kdcpr3Iv+KS7cL2DRFB6QAcSoR6/DojmwuxYF/pMCahMtaCLiqZGQjoSNl12+gQ6RsIJJyUh/jX3JVlOx8A=="],
+    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.3.2", "", { "dependencies": { "@opencode-ai/sdk": "1.3.2", "zod": "4.1.8" } }, "sha512-eT0ZovMCOQlfTdAnfbEWgW343mJ9SHgEVfdiOSX1NMIVXac6hxE2xwUsRVTV3wLvfA6dKZhN800f8wLUEyPlyg=="],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.3.0", "", {}, "sha512-5WyYEpcV6Zk9otXOMIrvZRbJm1yxt/c8EXSBn1p6Sw1yagz8HRljkoUTJFxzD0x2+/6vAZItr3OrXDZfE+oA2g=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.3.2", "", {}, "sha512-u7sXVKn0kyAA5vVVHuHQfq3+3UGWOU1Sh6d/e+aS4zO8AwriTSWNQ9r8Qy5yxBH+PoeOGl5WIVdp+s2Ea2zuAg=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.60.0", "", { "os": "android", "cpu": "arm" }, "sha512-WOhNW9K8bR3kf4zLxbfg6Pxu2ybOUbB2AjMDHSQx86LIF4rH4Ft7vmMwNt0loO0eonglSNy4cpD3MKXXKQu0/A=="],
 
@@ -212,7 +212,7 @@
 
     "object-assign": ["object-assign@4.1.1", "", {}, "sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg=="],
 
-    "opencode-claude-max-proxy": ["opencode-claude-max-proxy@1.17.0", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "claude-max-proxy": "dist/cli.js" } }, "sha512-F19JrPHC+S8gQYc4T2eggIT4FDFv2CwB+zN6XJ1SmN6EeNsY8UkAqtDXZXQcRnXz6VHUQ9sUG4fTqQs/jumJOw=="],
+    "opencode-claude-max-proxy": ["opencode-claude-max-proxy@1.17.1", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-2U++G1IfxJOoOXJwKjbcWJ/ZJfda8NyxuADGvr8MDzOu69fpQZpAwlolzDX0exZ6flW1rbUVSbVOKK4PuCNu3Q=="],
 
     "pathe": ["pathe@2.0.3", "", {}, "sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w=="],
 

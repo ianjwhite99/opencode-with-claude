@@ -1,6 +1,6 @@
-import { startProxyServer } from "opencode-claude-max-proxy"
 import type { AddressInfo } from "net"
 import type { LogFn } from "./logger.js"
+import { startProxyServer } from "opencode-claude-max-proxy"
 
 const IS_WINDOWS = process.platform === "win32"
 
@@ -20,18 +20,6 @@ export interface ProxyHandle {
 
 const DEFAULT_PORT = 3456
 
-/**
- * Start the Claude Max proxy using the programmatic API.
- *
- * Tries the preferred port first (default 3456). If that port is already
- * in use, falls back to port 0 so the OS assigns a free port. This keeps
- * the port predictable for single-instance users while allowing multiple
- * opencode instances to coexist without conflicts.
- *
- * The upstream proxy unconditionally writes `[PROXY]` lines to
- * console.error, so we patch it for the duration of the call and
- * redirect those messages through the plugin logger instead.
- */
 export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
   const { port = DEFAULT_PORT, log } = opts
 
@@ -99,12 +87,6 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
 // Process cleanup
 // ---------------------------------------------------------------------------
 
-/**
- * Register cross-platform cleanup handlers that stop the proxy on exit.
- *
- * - `exit` and `SIGINT` work on all platforms.
- * - `SIGTERM` is only available on POSIX systems.
- */
 export function registerCleanup(proxy: ProxyHandle): void {
   let cleaned = false
 
