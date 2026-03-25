@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.4...v1.1.5) (2026-03-25)
+
+
+### Bug Fixes
+
+* bun.lock ([49159bb](https://github.com/ianjwhite99/opencode-with-claude/commit/49159bbc56877e1265a1aeaf549bbde1969ae034))
+
 ## [1.1.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.3...v1.1.4) (2026-03-25)
 
 
