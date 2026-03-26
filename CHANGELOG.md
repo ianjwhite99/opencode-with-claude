@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.2.0...v1.3.0) (2026-03-26)
+
+
+### Features
+
+* Add proxy health error message to prevent hang ([#52](https://github.com/ianjwhite99/opencode-with-claude/issues/52)) ([765e7a3](https://github.com/ianjwhite99/opencode-with-claude/commit/765e7a3a3cece2b033da9cb8c41f4e7f1c08630a))
+
 ## [1.2.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.9...v1.2.0) (2026-03-26)
 
 
