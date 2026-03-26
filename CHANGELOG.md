@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.0...v1.3.1) (2026-03-26)
+
+
+### Bug Fixes
+
+* Update package.json ([#54](https://github.com/ianjwhite99/opencode-with-claude/issues/54)) ([b8dde5f](https://github.com/ianjwhite99/opencode-with-claude/commit/b8dde5f0f0ce6acff88843d44b0c735f096bc626))
+
 ## [1.3.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.2.0...v1.3.0) (2026-03-26)
 
 
