@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.9...v1.2.0) (2026-03-26)
+
+
+### Features
+
+* add session tracking headers via chat.headers hook ([#48](https://github.com/ianjwhite99/opencode-with-claude/issues/48)) ([d023366](https://github.com/ianjwhite99/opencode-with-claude/commit/d0233668fd8c326b97f32e5cecef7736dabf3db2))
+
 ## [1.1.9](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.8...v1.1.9) (2026-03-26)
 
 
