@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.9](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.8...v1.1.9) (2026-03-26)
+
+
+### Bug Fixes
+
+* bump core proxy version ([#46](https://github.com/ianjwhite99/opencode-with-claude/issues/46)) ([d72d191](https://github.com/ianjwhite99/opencode-with-claude/commit/d72d191cc2e83951f0af22280d929212d3258620))
+
 ## [1.1.8](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.1.7...v1.1.8) (2026-03-25)
 
 
