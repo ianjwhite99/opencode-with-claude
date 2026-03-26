@@ -24,5 +24,10 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
       input.provider.anthropic.options.baseURL = baseURL
       input.provider.anthropic.options.apiKey = "claude-max-proxy"
     },
+    async "chat.headers"(incoming, output) {
+      if (incoming.model.providerID !== "anthropic") return
+      output.headers["x-opencode-session"] = incoming.sessionID
+      output.headers["x-opencode-request"] = incoming.message.id
+    },
   }
 }
