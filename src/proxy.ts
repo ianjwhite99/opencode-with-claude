@@ -1,5 +1,5 @@
 import type { AddressInfo } from "net"
-import type { LogFn } from "./logger.js"
+import type { LogFn, LogLevel } from "./logger.js"
 import { startProxyServer } from "opencode-claude-max-proxy"
 
 const IS_WINDOWS = process.platform === "win32"
@@ -20,6 +20,17 @@ export interface ProxyHandle {
 
 const DEFAULT_PORT = 3456
 
+const ERROR_PATTERNS =
+  /authenticat|credentials|expired|not logged in|exit(?:ed)? with code|crash|unhealthy|401|402|billing|subscription/i
+const WARN_PATTERNS =
+  /rate.limit|429|overloaded|503|stale.session|timeout|timed out/i
+
+function classifyProxyLog(msg: string): LogLevel {
+  if (ERROR_PATTERNS.test(msg)) return "error"
+  if (WARN_PATTERNS.test(msg)) return "warn"
+  return "debug"
+}
+
 export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
   const { port = DEFAULT_PORT, log } = opts
 
@@ -27,7 +38,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
   console.error = (...args: unknown[]) => {
     const msg = args.map(String).join(" ")
     if (msg.startsWith("[PROXY]")) {
-      void log("debug", msg)
+      void log(classifyProxyLog(msg), msg)
       return
     }
     origError.apply(console, args)
@@ -80,6 +91,55 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
       console.error = origError
       await proxy.close()
     },
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Health check
+// ---------------------------------------------------------------------------
+
+export interface HealthResult {
+  ok: boolean
+  message?: string
+}
+
+export async function checkProxyHealth(
+  port: number,
+  log: LogFn
+): Promise<HealthResult> {
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/health`, {
+      signal: AbortSignal.timeout(5_000),
+    })
+    const body = await res.json() as Record<string, unknown>
+
+    if (body.status === "healthy") return { ok: true }
+
+    if (body.status === "degraded") {
+      const detail =
+        typeof body.error === "string"
+          ? body.error
+          : "Could not verify auth status"
+      await log(
+        "warn",
+        `[claude-max] ${detail}. Requests may still work — if they hang, try running 'claude login' in your terminal.`
+      )
+      return { ok: true, message: detail }
+    }
+
+    // "unhealthy" or unexpected status
+    const detail =
+      typeof body.error === "string"
+        ? body.error
+        : `Proxy health check returned status: ${body.status ?? res.status}`
+
+    await log("error", `[claude-max] ${detail}`)
+    return { ok: false, message: detail }
+  } catch (err) {
+    const msg =
+      err instanceof Error ? err.message : String(err)
+    await log("error", `[claude-max] Health check failed: ${msg}`)
+    return { ok: false, message: `Health check failed: ${msg}` }
   }
 }
 
