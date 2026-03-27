@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.1...v1.3.2) (2026-03-27)
+
+
+### Bug Fixes
+
+* add optional chaining for provider info access in chat.params ([#57](https://github.com/ianjwhite99/opencode-with-claude/issues/57)) ([7c224a3](https://github.com/ianjwhite99/opencode-with-claude/commit/7c224a361481199844e6526e86beff57aa83c494))
+
 ## [1.3.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.0...v1.3.1) (2026-03-26)
 
 
