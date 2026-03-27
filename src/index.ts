@@ -35,7 +35,7 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
       input.provider.anthropic.options.apiKey = "claude-max-proxy"
     },
     async "chat.params"(incoming, output) {
-      if (incoming.provider.info.id !== "anthropic") return
+      if (incoming.provider?.info?.id !== "anthropic") return
 
       const health = await checkProxyHealth(proxy.port, log)
       if (!health.ok) {
