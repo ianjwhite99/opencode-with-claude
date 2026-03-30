@@ -68,6 +68,23 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 opencode
 ```
 
+## Configuration
+
+| Environment Variable | Description | Default |
+|---|---|---|
+| `CLAUDE_PROXY_PORT` | Port for the local proxy server | `3456` |
+| `CLAUDE_PROXY_VERSION` | Pin a specific version of `opencode-claude-max-proxy` | Bundled version |
+
+### Pinning the proxy version
+
+By default the plugin uses the version of `opencode-claude-max-proxy` bundled with the package. To pin a specific version, set the `CLAUDE_PROXY_VERSION` environment variable:
+
+```bash
+CLAUDE_PROXY_VERSION=1.17.0 opencode
+```
+
+The requested version is installed to a local cache (`~/.cache/opencode-with-claude/`) on first use and reused on subsequent runs.
+
 ## Troubleshooting
 
 ### "Claude Code CLI not found"

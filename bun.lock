@@ -5,13 +5,13 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "@rynfar/meridian": "latest",
+        "@rynfar/meridian": "^1.22.1",
       },
       "devDependencies": {
-        "@opencode-ai/plugin": "latest",
-        "@types/node": "latest",
-        "tsup": "latest",
-        "typescript": "latest",
+        "@opencode-ai/plugin": "^1.3.9",
+        "@types/node": "^25.5.0",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.2",
       },
     },
   },

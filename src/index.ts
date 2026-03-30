@@ -8,8 +8,9 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
 
   const port =
     parseInt(process.env.CLAUDE_PROXY_PORT || "", 10) || undefined
+  const proxyVersion = process.env.CLAUDE_PROXY_VERSION || undefined
 
-  const proxy = await startProxy({ port, log })
+  const proxy = await startProxy({ port, proxyVersion, log })
 
   const baseURL = `http://127.0.0.1:${proxy.port}`
   await log("info", `proxy ready at ${baseURL}`)
