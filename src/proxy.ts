@@ -80,8 +80,8 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
     throw err
   }
 
-  const addr = proxy.server.address() as AddressInfo
-  const actualPort = addr.port
+  const addr = proxy.server.address() as AddressInfo | null
+  const actualPort = addr?.port ?? proxy.config?.port ?? DEFAULT_PORT
 
   await log("info", `Claude Max proxy running on port ${actualPort}`)
 
