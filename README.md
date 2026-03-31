@@ -6,7 +6,7 @@ Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) su
 
 ## What this is
 
-An [OpenCode](https://opencode.ai) plugin that runs [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) for you: **start OpenCode once** and the proxy comes up with it; **quit OpenCode** and the proxy stops. No separate proxy CLI or Docker container to manage.
+An [OpenCode](https://opencode.ai) plugin that runs [Meridian](https://github.com/rynfar/meridian) *(formerly opencode-claude-max-proxy)* for you: **start OpenCode once** and the proxy comes up with it; **quit OpenCode** and the proxy stops. No separate proxy CLI or Docker container to manage.
 
 **Compared to running the proxy yourself:**
 
@@ -149,7 +149,7 @@ This project calls publicly available npm packages using your own authenticated 
 
 ## Credits
 
-Built on top of [opencode-claude-max-proxy](https://github.com/rynfar/opencode-claude-max-proxy) by [@rynfar](https://github.com/rynfar), which provides the core proxy that bridges the Anthropic Agent SDK to the standard API.
+Built on top of [Meridian](https://github.com/rynfar/meridian) by [@rynfar](https://github.com/rynfar), which provides the core proxy that bridges the Anthropic Agent SDK to the standard API.
 
 Powered by the [Claude Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) by Anthropic and [OpenCode](https://opencode.ai).
 
