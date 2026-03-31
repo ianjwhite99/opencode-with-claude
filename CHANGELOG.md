@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.2...v1.3.3) (2026-03-31)
+
+
+### Bug Fixes
+
+* migrate to @rynfar/meridian and handle null server.address() ([#62](https://github.com/ianjwhite99/opencode-with-claude/issues/62)) ([965255e](https://github.com/ianjwhite99/opencode-with-claude/commit/965255e20a9f5c7a49115d4dbb953fe046b90d02))
+
 ## [1.3.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.1...v1.3.2) (2026-03-27)
 
 
