@@ -1,6 +1,6 @@
 import type { AddressInfo } from "net"
-import type { LogFn, LogLevel } from "./logger.js"
-import { startProxyServer } from "opencode-claude-max-proxy"
+import type { LogFn, LogLevel } from "./logger"
+import { startProxyServer } from "@rynfar/meridian"
 
 const IS_WINDOWS = process.platform === "win32"
 

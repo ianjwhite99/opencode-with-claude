@@ -1,7 +1,7 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
-import { createLogger } from "./logger.js"
-import { checkProxyHealth, registerCleanup, startProxy } from "./proxy.js"
+import { createLogger } from "./logger"
+import { checkProxyHealth, registerCleanup, startProxy } from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
   const log = createLogger(client)
