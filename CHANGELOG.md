@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.4...v1.3.5) (2026-04-01)
+
+
+### Bug Fixes
+
+* upgrade meridian to 1.23.1 and handle async EADDRINUSE properly ([#70](https://github.com/ianjwhite99/opencode-with-claude/issues/70)) ([ddc477c](https://github.com/ianjwhite99/opencode-with-claude/commit/ddc477cf384cf3cda634441caae0761d63751d03))
+
 ## [1.3.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.3...v1.3.4) (2026-04-01)
 
 
