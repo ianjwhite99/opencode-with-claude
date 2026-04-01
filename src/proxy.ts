@@ -1,6 +1,11 @@
 import type { AddressInfo } from "net"
 import type { LogFn, LogLevel } from "./logger"
-import { startProxyServer } from "@rynfar/meridian"
+import { applyMeridian203Patch } from "./patches/meridian-203"
+
+// Patch meridian before importing — see https://github.com/rynfar/meridian/issues/203
+// Remove this block once the upstream fix is released.
+applyMeridian203Patch()
+const { startProxyServer } = await import("@rynfar/meridian")
 
 const IS_WINDOWS = process.platform === "win32"
 
