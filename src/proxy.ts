@@ -1,11 +1,6 @@
 import type { AddressInfo } from "net"
 import type { LogFn, LogLevel } from "./logger"
-import { applyMeridian203Patch } from "./patches/meridian-203"
-
-// Patch meridian before importing — see https://github.com/rynfar/meridian/issues/203
-// Remove this block once the upstream fix is released.
-applyMeridian203Patch()
-const { startProxyServer } = await import("@rynfar/meridian")
+import { startProxyServer } from "@rynfar/meridian"
 
 const IS_WINDOWS = process.platform === "win32"
 
@@ -49,13 +44,40 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
     origError.apply(console, args)
   }
 
+  const tryStart = (p: number) =>
+    new Promise<Awaited<ReturnType<typeof startProxyServer>>>(
+      (resolve, reject) => {
+        startProxyServer({
+          port: p,
+          host: "127.0.0.1",
+          silent: true,
+        }).then((proxy) => {
+          // EADDRINUSE is emitted asynchronously on the server – the
+          // promise from startProxyServer resolves before the error
+          // fires.  We must listen for it explicitly.
+          const onError = (err: NodeJS.ErrnoException) => {
+            reject(err)
+          }
+          proxy.server.once("error", onError)
+
+          // If the server is already listening (address() is set),
+          // we're good.  Otherwise wait for the "listening" event.
+          if (proxy.server.listening) {
+            proxy.server.removeListener("error", onError)
+            resolve(proxy)
+          } else {
+            proxy.server.once("listening", () => {
+              proxy.server.removeListener("error", onError)
+              resolve(proxy)
+            })
+          }
+        }, reject)
+      }
+    )
+
   const attempt = async (p: number) => {
     try {
-      return await startProxyServer({
-        port: p,
-        host: "127.0.0.1",
-        silent: true,
-      })
+      return await tryStart(p)
     } catch (err) {
       if (
         p !== 0 &&
@@ -67,11 +89,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
           "info",
           `Port ${p} in use, starting on a random port instead...`
         )
-        return startProxyServer({
-          port: 0,
-          host: "127.0.0.1",
-          silent: true,
-        })
+        return tryStart(0)
       }
       throw err
     }

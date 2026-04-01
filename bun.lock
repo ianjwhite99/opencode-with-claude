@@ -5,13 +5,13 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "@rynfar/meridian": "latest",
+        "@rynfar/meridian": "^1.23.1",
       },
       "devDependencies": {
-        "@opencode-ai/plugin": "latest",
-        "@types/node": "latest",
-        "tsup": "latest",
-        "typescript": "latest",
+        "@opencode-ai/plugin": "^1.3.13",
+        "@types/node": "^25.5.0",
+        "tsup": "^8.5.1",
+        "typescript": "^6.0.2",
       },
     },
   },
@@ -110,9 +110,9 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.3.9", "", { "dependencies": { "@opencode-ai/sdk": "1.3.9", "zod": "4.1.8" }, "peerDependencies": { "@opentui/core": ">=0.1.92", "@opentui/solid": ">=0.1.92" }, "optionalPeers": ["@opentui/core", "@opentui/solid"] }, "sha512-tG4+APXwpgjx8wf4uiWtj+ju4LDiKwV65JTsy0VxpDy7L16aaxB8gXGXxIXvTE+1oFBe8PK81R/ECGegj9l4sA=="],
+    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.3.13", "", { "dependencies": { "@opencode-ai/sdk": "1.3.13", "zod": "4.1.8" }, "peerDependencies": { "@opentui/core": ">=0.1.95", "@opentui/solid": ">=0.1.95" }, "optionalPeers": ["@opentui/core", "@opentui/solid"] }, "sha512-zHgtWfdDz8Wu8srE8f8HUtPT9i6c3jTmgQKoFZUZ+RR5CMQF1kAlb1cxeEe9Xm2DRNFVJog9Cv/G1iUHYgXSUQ=="],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.3.9", "", {}, "sha512-SjvGhdtuqYOHbLyUA5KWI7hFXi2dLWhGxnAaNBK4LgWUU3KVEjdGAxDwQAuxDnq/Iv52ppEHfJsZhg+qFLk6ug=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.3.13", "", {}, "sha512-/M6HlNnba+xf1EId6qFb2tG0cvq0db3PCQDug1glrf8wYOU57LYNF8WvHX9zoDKPTMv0F+O4pcP/8J+WvDaxHA=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.60.0", "", { "os": "android", "cpu": "arm" }, "sha512-WOhNW9K8bR3kf4zLxbfg6Pxu2ybOUbB2AjMDHSQx86LIF4rH4Ft7vmMwNt0loO0eonglSNy4cpD3MKXXKQu0/A=="],
 
@@ -164,7 +164,7 @@
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.60.0", "", { "os": "win32", "cpu": "x64" }, "sha512-PrsWNQ8BuE00O3Xsx3ALh2Df8fAj9+cvvX9AIA6o4KpATR98c9mud4XtDWVvsEuyia5U4tVSTKygawyJkjm60w=="],
 
-    "@rynfar/meridian": ["@rynfar/meridian@1.22.1", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-y4q7aCNlfBN4ULlfLKx391zyd06t5/tp+a9TpEclD7fDgcvgqk5MvDi05qzrNc3Yu/bzUuLIBcsdeNg0AohkTA=="],
+    "@rynfar/meridian": ["@rynfar/meridian@1.23.1", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.80" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-2SLq7WL/JdVGEm05pfk+vyaykaK6+/jQ/ijCC0sSJWum+5Sbn6fx1m8jPmXDXkxqXR+WcDRvhCvhnB8lz1tQFA=="],
 
     "@types/estree": ["@types/estree@1.0.8", "", {}, "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="],
 
