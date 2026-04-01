@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.7](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.6...v1.3.7) (2026-04-01)
+
+
+### Bug Fixes
+
+* patch meridian SDK Bun detection to force node executable ([#74](https://github.com/ianjwhite99/opencode-with-claude/issues/74)) ([6ca1167](https://github.com/ianjwhite99/opencode-with-claude/commit/6ca1167d2bef995781b364e8bb2a667fd40336b2))
+
 ## [1.3.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.5...v1.3.6) (2026-04-01)
 
 
