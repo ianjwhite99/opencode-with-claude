@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.3...v1.3.4) (2026-04-01)
+
+
+### Bug Fixes
+
+* patch meridian bypassPermissions causing exit code 1 ([#67](https://github.com/ianjwhite99/opencode-with-claude/issues/67)) ([0fffbf6](https://github.com/ianjwhite99/opencode-with-claude/commit/0fffbf61ad116d51c1b453c9a799b1aa18fc1a3a))
+
 ## [1.3.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.2...v1.3.3) (2026-03-31)
 
 
