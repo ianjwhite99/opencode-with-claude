@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.5...v1.3.6) (2026-04-01)
+
+
+### Bug Fixes
+
+* upgrade meridian to 1.24.1 and remove obsolete patch ([#72](https://github.com/ianjwhite99/opencode-with-claude/issues/72)) ([42e998b](https://github.com/ianjwhite99/opencode-with-claude/commit/42e998bb41e227e96e19e16986dd983630712b65))
+
 ## [1.3.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.4...v1.3.5) (2026-04-01)
 
 
