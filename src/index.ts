@@ -9,7 +9,17 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
   const port =
     parseInt(process.env.CLAUDE_PROXY_PORT || "", 10) || undefined
 
-  const proxy = await startProxy({ port, log })
+  let proxy: Awaited<ReturnType<typeof startProxy>>
+  try {
+    proxy = await startProxy({ port, log })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const hint = msg.includes("Could not find Claude Code executable")
+      ? " Ensure `claude` is on your PATH (e.g. add nvm/fnm/volta to your shell profile so tmux inherits it)."
+      : ""
+    await log("error", `[claude-max] Failed to start proxy: ${msg}.${hint}`)
+    throw err
+  }
 
   const baseURL = `http://127.0.0.1:${proxy.port}`
   await log("info", `proxy ready at ${baseURL}`)
