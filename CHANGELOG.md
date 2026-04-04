@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.10](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.9...v1.3.10) (2026-04-04)
+
+
+### Bug Fixes
+
+* bump @rynfar/meridian to 1.27.0 and @opencode-ai/plugin to 1.3.15 ([#83](https://github.com/ianjwhite99/opencode-with-claude/issues/83)) ([92937c4](https://github.com/ianjwhite99/opencode-with-claude/commit/92937c4fa8615a6535709972639c8d76b85eb370))
+
 ## [1.3.9](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.8...v1.3.9) (2026-04-04)
 
 
