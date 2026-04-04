@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.9](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.8...v1.3.9) (2026-04-04)
+
+
+### Bug Fixes
+
+* enable passthrough mode so tool calls show in TUI ([#80](https://github.com/ianjwhite99/opencode-with-claude/issues/80)) ([a7c3a79](https://github.com/ianjwhite99/opencode-with-claude/commit/a7c3a791ab8d92bf5f33b5898e366119cb52c585))
+
 ## [1.3.8](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.7...v1.3.8) (2026-04-04)
 
 
