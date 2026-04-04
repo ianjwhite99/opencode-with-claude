@@ -6,11 +6,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@rynfar/meridian": "^1.24.1"
+    "@rynfar/meridian": "^1.26.6"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.3.13",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2"
   },
