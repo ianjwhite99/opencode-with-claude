@@ -1,11 +1,11 @@
 import type { AddressInfo } from "net"
 import type { LogFn, LogLevel } from "./logger"
-import { applyMeridian203Patch } from "./patches/meridian-203"
+import { startProxyServer } from "@rynfar/meridian"
 
-// Patch the SDK's Bun detection before importing meridian.
-// Remove this block once meridian passes executable: "node" upstream.
-applyMeridian203Patch()
-const { startProxyServer } = await import("@rynfar/meridian")
+// Enable passthrough mode so the proxy returns tool_use blocks to OpenCode
+// for execution, rather than running them internally. Without this, tool
+// calls are filtered from the response stream and never shown in the TUI.
+process.env.MERIDIAN_PASSTHROUGH ??= "true"
 
 const IS_WINDOWS = process.platform === "win32"
 
