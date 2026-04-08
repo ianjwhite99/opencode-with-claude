@@ -1,63 +1,43 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
+import { loadPrompt } from "./prompts"
 import { createLogger } from "./logger"
-import { checkProxyHealth, registerCleanup, startProxy } from "./proxy"
+import { registerCleanup, startProxy } from "./proxy"
 
-export const ClaudeMaxPlugin: Plugin = async ({ client, $, directory }) => {
+export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const log = createLogger(client)
 
-  const port =
-    parseInt(process.env.CLAUDE_PROXY_PORT || "", 10) || undefined
-
-  let proxy: Awaited<ReturnType<typeof startProxy>>
-  try {
-    proxy = await startProxy({ port, log })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    const hint = msg.includes("Could not find Claude Code executable")
-      ? " Ensure `claude` is on your PATH (e.g. add nvm/fnm/volta to your shell profile so tmux inherits it)."
-      : ""
-    await log("error", `[claude-max] Failed to start proxy: ${msg}.${hint}`)
-    throw err
-  }
+  const port = process.env.CLAUDE_PROXY_PORT || 3456
+  const proxy = await startProxy({ port, log })
 
   const baseURL = `http://127.0.0.1:${proxy.port}`
   await log("info", `proxy ready at ${baseURL}`)
-
+  
   registerCleanup(proxy)
 
-  // Run an initial health check so auth / setup issues are surfaced
-  // immediately rather than silently hanging on the first request.
-  const initialHealth = await checkProxyHealth(proxy.port, log)
-  if (!initialHealth.ok) {
-    await log(
-      "error",
-      `[claude-max] Proxy started but is not healthy: ${initialHealth.message}. Requests will likely fail.`
-    )
-  }
+  let currentAgent = ""
 
   return {
     async config(input) {
-      input.provider ??= {}
-      input.provider.anthropic ??= {}
-      input.provider.anthropic.options ??= {}
-      input.provider.anthropic.options.baseURL = baseURL
-      input.provider.anthropic.options.apiKey = "claude-max-proxy"
+      const opts = ((input.provider ??= {}).anthropic ??= {}).options ??= {}
+      opts.baseURL = baseURL
+      opts.apiKey = ""
     },
-    async "chat.params"(incoming, output) {
-      if (incoming.provider?.info?.id !== "anthropic") return
 
-      const health = await checkProxyHealth(proxy.port, log)
-      if (!health.ok) {
-        throw new Error(
-          `Claude Max proxy is not healthy: ${health.message}`
-        )
-      }
+    async "chat.params"(incoming) {
+      if (incoming.provider?.info?.id !== "anthropic") return
+      currentAgent = incoming.agent
     },
+
     async "chat.headers"(incoming, output) {
       if (incoming.model.providerID !== "anthropic") return
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
+    },
+
+    async "experimental.chat.system.transform"(input, output) {
+      if (input.model.providerID !== "anthropic") return
+      output.system.splice(0, output.system.length, loadPrompt(currentAgent) ?? "")
     },
   }
 }
