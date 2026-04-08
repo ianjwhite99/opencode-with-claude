@@ -48,7 +48,15 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-with-claude"]
+  "plugin": ["opencode-with-claude"],
+  "provider": {
+    "anthropic": {
+      "options": {
+        "baseURL": "http://127.0.0.1:3456",
+        "apiKey": "dummy"
+      }
+    }
+  }
 }
 ```
 
