@@ -15,7 +15,7 @@
     "typescript": "^6.0.2"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --minify",
+    "build": "tsup",
     "test": "./test/run.sh",
     "test:clean": "./test/run.sh --clean",
     "prepublishOnly": "npm run build"

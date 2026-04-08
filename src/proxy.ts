@@ -14,12 +14,12 @@ const IS_WINDOWS = process.platform === "win32"
 // ---------------------------------------------------------------------------
 
 export interface StartProxyOptions {
-  port?: number
+  port?: string | number
   log: LogFn
 }
 
 export interface ProxyHandle {
-  port: number
+  port: string | number
   close(): Promise<void>
 }
 
@@ -102,7 +102,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
 
   let proxy: Awaited<ReturnType<typeof startProxyServer>>
   try {
-    proxy = await attempt(port)
+    proxy = await attempt(typeof port === "string" ? parseInt(port, 10) : port)
   } catch (err) {
     console.error = origError
     throw err
@@ -132,7 +132,7 @@ export interface HealthResult {
 }
 
 export async function checkProxyHealth(
-  port: number,
+  port: string | number,
   log: LogFn
 ): Promise<HealthResult> {
   try {
