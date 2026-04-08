@@ -48,19 +48,9 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-with-claude"],
-  "provider": {
-    "anthropic": {
-      "options": {
-        "baseURL": "http://127.0.0.1:3456",
-        "apiKey": "dummy"
-      }
-    }
-  }
+  "plugin": ["opencode-with-claude"]
 }
 ```
-
-> **Note:** The `apiKey` is a placeholder — authentication goes through your Claude Max session via `claude login`, not an API key. The `baseURL` is the default proxy port. If port 3456 is already in use (e.g., another OpenCode instance), the plugin automatically starts the proxy on a different port and overrides the `baseURL` at runtime.
 
 **3. Run OpenCode**
 
