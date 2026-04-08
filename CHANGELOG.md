@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.12](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.11...v1.3.12) (2026-04-08)
+
+
+### Bug Fixes
+
+* bump Meridian 1.31.2 ([#87](https://github.com/ianjwhite99/opencode-with-claude/issues/87)) ([7d36978](https://github.com/ianjwhite99/opencode-with-claude/commit/7d369789ae5a71b91eb94a00ac549392a39da948))
+
 ## [1.3.11](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.10...v1.3.11) (2026-04-07)
 
 
