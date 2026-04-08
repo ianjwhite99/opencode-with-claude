@@ -15,29 +15,28 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   
   registerCleanup(proxy)
 
-  let currentAgent = ""
+  let currentAgent: string
 
   return {
     async config(input) {
       const opts = ((input.provider ??= {}).anthropic ??= {}).options ??= {}
       opts.baseURL = baseURL
-      opts.apiKey = ""
     },
 
-    async "chat.params"(incoming) {
-      if (incoming.provider?.info?.id !== "anthropic") return
-      currentAgent = incoming.agent
+    async "chat.message"(incoming, output) {
+      if (incoming.model?.providerID !== "anthropic") return
+      currentAgent = output.message.agent
+    },
+
+    async "experimental.chat.system.transform"(input, output) {
+      if (input.model.providerID !== "anthropic") return
+      output.system.splice(0, output.system.length, loadPrompt(currentAgent))
     },
 
     async "chat.headers"(incoming, output) {
       if (incoming.model.providerID !== "anthropic") return
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
-    },
-
-    async "experimental.chat.system.transform"(input, output) {
-      if (input.model.providerID !== "anthropic") return
-      output.system.splice(0, output.system.length, loadPrompt(currentAgent) ?? "")
     },
   }
 }
