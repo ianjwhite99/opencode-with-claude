@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.2...v1.4.3) (2026-04-08)
+
+
+### Bug Fixes
+
+* move log classification to logger ([#97](https://github.com/ianjwhite99/opencode-with-claude/issues/97)) ([8194b19](https://github.com/ianjwhite99/opencode-with-claude/commit/8194b19c83210f34a31ecb30c6edfe12067ab97f))
+
 ## [1.4.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.1...v1.4.2) (2026-04-08)
 
 
