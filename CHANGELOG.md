@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.1...v1.4.2) (2026-04-08)
+
+
+### Bug Fixes
+
+* Set currentAgent before system transform ([#94](https://github.com/ianjwhite99/opencode-with-claude/issues/94)) ([3685c3d](https://github.com/ianjwhite99/opencode-with-claude/commit/3685c3de0a6d76d643402afe04a754d335da71e4))
+
 ## [1.4.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.0...v1.4.1) (2026-04-08)
 
 
