@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.3...v1.4.4) (2026-04-08)
+
+
+### Bug Fixes
+
+* Update README with Anthropic provider details ([#101](https://github.com/ianjwhite99/opencode-with-claude/issues/101)) ([ea17a3c](https://github.com/ianjwhite99/opencode-with-claude/commit/ea17a3c06216ff1d234754f93d08fcd440482fb0))
+
 ## [1.4.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.2...v1.4.3) (2026-04-08)
 
 
