@@ -1,6 +1,10 @@
 import type { AddressInfo } from "net"
 import  { classifyProxyLog, type LogFn } from "./logger"
-import { startProxyServer } from "@rynfar/meridian"
+import { startProxyServer, enableDiskProfileDiscovery } from "@rynfar/meridian"
+
+// Enable reading profiles from ~/.config/meridian/profiles.json
+// This must be called before startProxyServer() to load user-configured profiles
+enableDiskProfileDiscovery()
 
 // Enable passthrough mode so the proxy returns tool_use blocks to OpenCode
 // for execution, rather than running them internally. Without this, tool
