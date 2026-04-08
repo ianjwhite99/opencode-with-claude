@@ -1,5 +1,5 @@
 import type { AddressInfo } from "net"
-import type { LogFn, LogLevel } from "./logger"
+import  { classifyProxyLog, type LogFn } from "./logger"
 import { startProxyServer } from "@rynfar/meridian"
 
 // Enable passthrough mode so the proxy returns tool_use blocks to OpenCode
@@ -25,17 +25,6 @@ export interface ProxyHandle {
 
 const DEFAULT_PORT = 3456
 
-const ERROR_PATTERNS =
-  /authenticat|credentials|expired|not logged in|exit(?:ed)? with code|crash|unhealthy|401|402|billing|subscription/i
-const WARN_PATTERNS =
-  /rate.limit|429|overloaded|503|stale.session|timeout|timed out/i
-
-function classifyProxyLog(msg: string): LogLevel {
-  if (ERROR_PATTERNS.test(msg)) return "error"
-  if (WARN_PATTERNS.test(msg)) return "warn"
-  return "debug"
-}
-
 export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
   const { port = DEFAULT_PORT, log } = opts
 
@@ -43,7 +32,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
   console.error = (...args: unknown[]) => {
     const msg = args.map(String).join(" ")
     if (msg.startsWith("[PROXY]")) {
-      void log(classifyProxyLog(msg), msg)
+      void log(classifyProxyLog(msg as string), msg)
       return
     }
     origError.apply(console, args)
