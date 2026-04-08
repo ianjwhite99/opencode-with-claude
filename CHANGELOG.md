@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.0...v1.4.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* Claude third party usage block ([#92](https://github.com/ianjwhite99/opencode-with-claude/issues/92)) ([0d88c50](https://github.com/ianjwhite99/opencode-with-claude/commit/0d88c506fc44d70074b4f518e21900dc88233aa3))
+
 ## [1.4.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.3.12...v1.4.0) (2026-04-08)
 
 
