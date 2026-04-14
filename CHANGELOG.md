@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.4...v1.5.0) (2026-04-14)
+
+
+### Features
+
+* 1.37.2 ([#105](https://github.com/ianjwhite99/opencode-with-claude/issues/105)) ([4248851](https://github.com/ianjwhite99/opencode-with-claude/commit/42488510343cc138381ff0c1e0d856e3149e3c44))
+
 ## [1.4.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.3...v1.4.4) (2026-04-08)
 
 
