@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.0...v1.5.1) (2026-04-17)
+
+
+### Bug Fixes
+
+* awaiting logger hangs plugin ([#109](https://github.com/ianjwhite99/opencode-with-claude/issues/109)) ([3ce39c1](https://github.com/ianjwhite99/opencode-with-claude/commit/3ce39c1df9a645cbc204909af6a2fb3c33a3f13c))
+
 ## [1.5.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.4.4...v1.5.0) (2026-04-14)
 
 
