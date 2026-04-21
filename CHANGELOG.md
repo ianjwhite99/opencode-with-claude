@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.4...v1.5.5) (2026-04-21)
+
+
+### Bug Fixes
+
+* readme.md injection ([#119](https://github.com/ianjwhite99/opencode-with-claude/issues/119)) ([32a09de](https://github.com/ianjwhite99/opencode-with-claude/commit/32a09de411dc3fa211c515138ce17c5b8b09a523))
+
 ## [1.5.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.3...v1.5.4) (2026-04-21)
 
 
