@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.1...v1.5.2) (2026-04-21)
+
+
+### Bug Fixes
+
+* strip anthropic-beta header for proxy requests ([#112](https://github.com/ianjwhite99/opencode-with-claude/issues/112)) ([25cff3b](https://github.com/ianjwhite99/opencode-with-claude/commit/25cff3b3a9b7d53ff62cbaf5ef48dec1d4b4a5f7))
+
 ## [1.5.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.0...v1.5.1) (2026-04-17)
 
 
