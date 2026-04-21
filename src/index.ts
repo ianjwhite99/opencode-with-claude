@@ -1,6 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
-import { loadPrompt } from "./prompts"
+import { loadSystemPrompt } from "./prompts"
 import { createLogger } from "./logger"
 import { registerCleanup, startProxy } from "./proxy"
 
@@ -31,10 +31,10 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
       currentAgent = output.message.agent
     },
 
-    // Inject the prompt for the current agent into the system prompt
+    // Replace the default system prompt with the selected agent prompt plus global AGENTS.md content
     async "experimental.chat.system.transform"(input, output) {
       if (input.model.providerID !== "anthropic") return
-      output.system.splice(0, output.system.length, loadPrompt(currentAgent))
+      output.system.splice(0, output.system.length, ...loadSystemPrompt(currentAgent))
     },
 
     // Delete the anthropic-beta header and add session and request headers to the request for the proxy to identify the session and request
