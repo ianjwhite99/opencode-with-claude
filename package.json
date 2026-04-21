@@ -9,7 +9,7 @@
     "@rynfar/meridian": "^1.37.8"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "^1.4.9",
+    "@opencode-ai/plugin": "^1.14.19",
     "@types/node": "^25.6.0",
     "tsup": "^8.5.1",
     "typescript": "^6.0.3"
