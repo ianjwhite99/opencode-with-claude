@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.3...v1.5.4) (2026-04-21)
+
+
+### Bug Fixes
+
+* revert opencode prompt injection ([#117](https://github.com/ianjwhite99/opencode-with-claude/issues/117)) ([633f4b2](https://github.com/ianjwhite99/opencode-with-claude/commit/633f4b220497b3ab37edcb2a6036fb7d212839ac))
+
 ## [1.5.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.2...v1.5.3) (2026-04-21)
 
 
