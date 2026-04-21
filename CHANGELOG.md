@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.2...v1.5.3) (2026-04-21)
+
+
+### Bug Fixes
+
+* preserve AGENTS.md content in system prompt ([#107](https://github.com/ianjwhite99/opencode-with-claude/issues/107)) ([#115](https://github.com/ianjwhite99/opencode-with-claude/issues/115)) ([152cb2c](https://github.com/ianjwhite99/opencode-with-claude/commit/152cb2c1a714dae14799ea3ec14e1ba4f2386b37))
+
 ## [1.5.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.1...v1.5.2) (2026-04-21)
 
 
