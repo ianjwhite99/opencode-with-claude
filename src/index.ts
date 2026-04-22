@@ -2,7 +2,7 @@ import type { Plugin } from "@opencode-ai/plugin"
 
 import { loadPrompt } from "./prompts"
 import { createLogger } from "./logger"
-import { registerCleanup, startProxy } from "./proxy"
+import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const log = createLogger(client)
@@ -10,7 +10,7 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const port = process.env.CLAUDE_PROXY_PORT || 3456
   const proxy = await startProxy({ port, log })
 
-  const baseURL = `http://127.0.0.1:${proxy.port}`
+  const baseURL = getProxyBaseURL(proxy.port)
   void log("info", `proxy ready at ${baseURL}`)
   
   registerCleanup(proxy)

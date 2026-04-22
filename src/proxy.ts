@@ -24,9 +24,41 @@ export interface ProxyHandle {
 }
 
 const DEFAULT_PORT = 3456
+const DEFAULT_HOST = "127.0.0.1"
+
+function formatHostForUrl(host: string): string {
+  return host.includes(":") && !host.startsWith("[") ? `[${host}]` : host
+}
+
+export function getProxyHost(): string {
+  const host =
+    process.env.MERIDIAN_HOST?.trim() ||
+    process.env.CLAUDE_PROXY_HOST?.trim() ||
+    DEFAULT_HOST
+
+  return host.startsWith("[") && host.endsWith("]")
+    ? host.slice(1, -1)
+    : host
+}
+
+export function getProxyConnectHost(host = getProxyHost()): string {
+  // Wildcard bind addresses are not stable dial targets, so keep in-process
+  // traffic on loopback unless the user picked a concrete host.
+  if (host === "0.0.0.0") return DEFAULT_HOST
+  if (host === "::" || host === "[::]") return "::1"
+  return host
+}
+
+export function getProxyBaseURL(
+  port: string | number,
+  host = getProxyHost()
+): string {
+  return `http://${formatHostForUrl(getProxyConnectHost(host))}:${port}`
+}
 
 export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
   const { port = DEFAULT_PORT, log } = opts
+  const host = getProxyHost()
 
   const origError = console.error
   console.error = (...args: unknown[]) => {
@@ -43,7 +75,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
       (resolve, reject) => {
         startProxyServer({
           port: p,
-          host: "127.0.0.1",
+          host,
           silent: true,
         }).then((proxy) => {
           // EADDRINUSE is emitted asynchronously on the server – the
@@ -125,7 +157,7 @@ export async function checkProxyHealth(
   log: LogFn | undefined
 ): Promise<HealthResult> {
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/health`, {
+    const res = await fetch(getProxyBaseURL(port) + "/health", {
       signal: AbortSignal.timeout(5_000),
     })
     const body = await res.json() as Record<string, unknown>

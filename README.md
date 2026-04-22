@@ -88,6 +88,26 @@ This opens a browser for OAuth. Your Claude Max subscription credentials are nee
 2. Ensure your internet connection is working
 3. If using a manual port override, check if it's in use: `lsof -i :$CLAUDE_PROXY_PORT`
 
+### Binding the proxy to a non-localhost interface
+
+Meridian binds to `127.0.0.1` by default. If you need it to listen on another
+interface, set `CLAUDE_PROXY_HOST` (or Meridian's `MERIDIAN_HOST` alias) before
+starting OpenCode:
+
+```bash
+CLAUDE_PROXY_HOST=0.0.0.0 opencode serve --hostname 0.0.0.0 --port 4098
+```
+
+The plugin still uses loopback internally when you bind to wildcard addresses
+such as `0.0.0.0` or `::`, so local health checks and provider requests remain
+stable.
+
+Warning
+
+Exposing the proxy beyond localhost makes your authenticated Claude session
+reachable over the network. Only do this on trusted networks, and prefer
+firewall rules or other access controls if you open it up.
+
 ## Development
 
 ### Project Structure
