@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.5...v1.5.6) (2026-04-22)
+
+
+### Bug Fixes
+
+* support configurable proxy host binding ([#122](https://github.com/ianjwhite99/opencode-with-claude/issues/122)) ([b59bcea](https://github.com/ianjwhite99/opencode-with-claude/commit/b59bceab574ba8a8a52ea35c7994f6da19341dca))
+
 ## [1.5.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.4...v1.5.5) (2026-04-21)
 
 
