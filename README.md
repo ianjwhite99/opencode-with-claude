@@ -66,6 +66,74 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 opencode
 ```
 
+## Profiles and SDK features
+
+The plugin now reads the same Meridian configuration files the `meridian` CLI
+uses, so you can maintain multiple Claude accounts and tune SDK behavior
+without leaving OpenCode.
+
+### Profiles (`~/.config/meridian/profiles.json`)
+
+Define one or more named profiles (for example, a personal Claude Max account
+and a work account). The plugin forwards them to Meridian at startup.
+
+```json
+[
+  {
+    "id": "personal",
+    "claudeConfigDir": "/Users/me/.config/meridian/profiles/personal"
+  },
+  {
+    "id": "work",
+    "claudeConfigDir": "/Users/me/.config/meridian/profiles/work"
+  }
+]
+```
+
+### Active profile (`~/.config/meridian/settings.json`)
+
+```json
+{ "activeProfile": "work" }
+```
+
+`activeProfile` selects the default profile for any request that does not send
+an explicit `x-meridian-profile` header. If the saved id is not in
+`profiles.json` (or the file is missing), the plugin logs a warning and falls
+back to the first configured profile.
+
+### SDK features (`~/.config/meridian/sdk-features.json`)
+
+Meridian reads this file lazily on every request, so overrides take effect
+without restarting the proxy. The plugin does not need to do anything special
+for it to work — just edit the file and the next request picks it up. See
+Meridian's documentation for the full list of adapter keys.
+
+```json
+{
+  "opencode": {
+    "memory": true,
+    "thinking": "enabled",
+    "maxBudgetUsd": 0.5
+  }
+}
+```
+
+### Environment overrides
+
+For parity with the `meridian` CLI:
+
+- `MERIDIAN_PROFILES` — JSON array of profile objects; wins over `profiles.json`.
+- `MERIDIAN_DEFAULT_PROFILE` — profile id; wins over `settings.activeProfile`.
+
+Malformed or missing files never crash the plugin; all parse/IO failures are
+logged via OpenCode's plugin log and the plugin falls back to no-profile mode.
+
+### Switching profiles at runtime
+
+Profile switching through Meridian's HTTP API continues to work — call
+`POST /profiles/active` on the proxy URL the plugin prints at startup. The
+selection is persisted back to `settings.json` and survives restarts.
+
 ## Troubleshooting
 
 ### "Claude Code CLI not found"

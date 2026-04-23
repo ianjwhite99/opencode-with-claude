@@ -1,5 +1,6 @@
 import type { AddressInfo } from "net"
-import  { classifyProxyLog, type LogFn } from "./logger"
+import { classifyProxyLog, type LogFn } from "./logger.ts"
+import type { ProfileConfig } from "./meridian-config.ts"
 import { startProxyServer } from "@rynfar/meridian"
 
 // Enable passthrough mode so the proxy returns tool_use blocks to OpenCode
@@ -16,6 +17,10 @@ const IS_WINDOWS = process.platform === "win32"
 export interface StartProxyOptions {
   port?: string | number
   log: LogFn | undefined
+  /** Named auth profiles forwarded to Meridian's ProxyConfig. */
+  profiles?: ProfileConfig[]
+  /** Default profile id when no x-meridian-profile header is sent. */
+  defaultProfile?: string
 }
 
 export interface ProxyHandle {
@@ -57,7 +62,7 @@ export function getProxyBaseURL(
 }
 
 export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
-  const { port = DEFAULT_PORT, log } = opts
+  const { port = DEFAULT_PORT, log, profiles, defaultProfile } = opts
   const host = getProxyHost()
 
   const origError = console.error
@@ -77,6 +82,8 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
           port: p,
           host,
           silent: true,
+          profiles,
+          defaultProfile,
         }).then((proxy) => {
           // EADDRINUSE is emitted asynchronously on the server – the
           // promise from startProxyServer resolves before the error

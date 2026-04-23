@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsup",
     "test": "./test/run.sh",
-    "test:unit": "npm run build && node --test test/*.test.mjs",
+    "test:unit": "npm run build && node --experimental-strip-types --test test/unit/*.test.mjs",
     "test:clean": "./test/run.sh --clean",
     "prepublishOnly": "npm run build"
   },
