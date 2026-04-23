@@ -150,9 +150,9 @@
 
     "@neon-rs/load": ["@neon-rs/load@0.0.4", "", {}, "sha512-kTPhdZyTQxB+2wpiRcFWrDcejc4JI6tkPuS7UZCG4l6Zvc5kU/gGQ/ozvHTh1XR5tS+UlfAfGuPajjzQjCiHCw=="],
 
-    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.14.19", "", { "dependencies": { "@opencode-ai/sdk": "1.14.19", "effect": "4.0.0-beta.48", "zod": "4.1.8" }, "peerDependencies": { "@opentui/core": ">=0.1.101", "@opentui/solid": ">=0.1.101" }, "optionalPeers": ["@opentui/core", "@opentui/solid"] }, "sha512-g0C8Viocybmet7nBqJK/1xrQnacRS1f30VmqRTPScPmWz+4knIZzc2TEQp8+920sN8rB6BuoGwfBUVRXJmavhQ=="],
+    "@opencode-ai/plugin": ["@opencode-ai/plugin@1.14.22", "", { "dependencies": { "@opencode-ai/sdk": "1.14.22", "effect": "4.0.0-beta.48", "zod": "4.1.8" }, "peerDependencies": { "@opentui/core": ">=0.1.99", "@opentui/solid": ">=0.1.99" }, "optionalPeers": ["@opentui/core", "@opentui/solid"] }, "sha512-lJlukegf5ECEHm9Y0NxCjXNfUArpPSUHP6hc+M4VCJ3NFk8uzzVsIXAzPS9Hvf2ltzjEYD/ulCOTi6pleeZ6yw=="],
 
-    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.14.19", "", { "dependencies": { "cross-spawn": "7.0.6" } }, "sha512-9sTGsi8/HlBBeaWfsUjdJ2yi/SqpRvqSld0IFXc3ldaPb1w1uIPvgCGzhlHYQtqatXxSaX5lTN7zpudMaE21aw=="],
+    "@opencode-ai/sdk": ["@opencode-ai/sdk@1.14.22", "", { "dependencies": { "cross-spawn": "7.0.6" } }, "sha512-1PjkrZRAwm9ocfTwOleP/e31HYtLVODb2E1hYTRHMmvF2rmAdCm7lztguYVkAPn/B6koGpFvhslTQH7j+38Fjw=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.60.0", "", { "os": "android", "cpu": "arm" }, "sha512-WOhNW9K8bR3kf4zLxbfg6Pxu2ybOUbB2AjMDHSQx86LIF4rH4Ft7vmMwNt0loO0eonglSNy4cpD3MKXXKQu0/A=="],
 
@@ -204,7 +204,7 @@
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.60.0", "", { "os": "win32", "cpu": "x64" }, "sha512-PrsWNQ8BuE00O3Xsx3ALh2Df8fAj9+cvvX9AIA6o4KpATR98c9mud4XtDWVvsEuyia5U4tVSTKygawyJkjm60w=="],
 
-    "@rynfar/meridian": ["@rynfar/meridian@1.37.8", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.89", "libsql": "^0.5.29" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-k8lJldlPLxtXK67VqxlmcrNB9IV7R19ni29IU6i0/diOXZZxHmXhLC/jpx6J2J+8Bh81sBDcNxrLk+sbjID24g=="],
+    "@rynfar/meridian": ["@rynfar/meridian@1.38.0", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.89", "libsql": "^0.5.29" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-wyeOScKjsU99SqckXJyBKQpzPUBm8flBgw9Q9q6lq4Is7Cs4rHsLG9g6FhmWjOWdd6iRW8hwav4gJmrNO+xblg=="],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
