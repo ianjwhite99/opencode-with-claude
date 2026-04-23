@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.0...v1.6.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* plugin and meridian version bump ([#126](https://github.com/ianjwhite99/opencode-with-claude/issues/126)) ([8e35962](https://github.com/ianjwhite99/opencode-with-claude/commit/8e35962c2b32b1097b62d4e6dbd89671f4671dd3))
+
 ## [1.6.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.5.6...v1.6.0) (2026-04-23)
 
 
