@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.2...v1.6.3) (2026-04-27)
+
+
+### Bug Fixes
+
+* refresh bun lockfile ([#131](https://github.com/ianjwhite99/opencode-with-claude/issues/131)) ([1ca3b43](https://github.com/ianjwhite99/opencode-with-claude/commit/1ca3b43b453ee10bc71b36661f48bbf084219337))
+
 ## [1.6.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.1...v1.6.2) (2026-04-27)
 
 
