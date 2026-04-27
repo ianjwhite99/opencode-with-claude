@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.1...v1.6.2) (2026-04-27)
+
+
+### Bug Fixes
+
+* update meridian for Linux Claude launcher ([#129](https://github.com/ianjwhite99/opencode-with-claude/issues/129)) ([af97cb2](https://github.com/ianjwhite99/opencode-with-claude/commit/af97cb26a302421e2b61478d0dd3f28808d957ed))
+
 ## [1.6.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.0...v1.6.1) (2026-04-23)
 
 
