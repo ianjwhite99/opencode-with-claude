@@ -109,8 +109,8 @@ for it to work — just edit the file and the next request picks it up. See
 Meridian's documentation for the full list of adapter keys.
 
 This plugin keeps Meridian's client prompt pass-through enabled, but strips
-OpenCode's built-in system prompt before forwarding. The forwarded client
-prompt is limited to cwd context plus `AGENTS.md` instructions.
+OpenCode's built-in system prompt before forwarding. OpenCode-assembled context
+such as cwd, `AGENTS.md`, and configured instructions is preserved.
 
 ```json
 {

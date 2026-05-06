@@ -6,7 +6,6 @@ import {
   loadMeridianConfig,
   summarizeMeridianConfig,
 } from "./meridian-config"
-import { buildStrippedOpenCodeSystem } from "./opencode-system"
 import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
@@ -39,14 +38,12 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
       ;(anthropic.options ??= {}).baseURL = baseURL
     },
 
-    // Keep AGENTS.md and cwd context, but strip OpenCode's built-in prompt before Meridian pass-through.
+    // Keep OpenCode-assembled context, but strip the built-in OpenCode prompt.
     async "experimental.chat.system.transform"(input, output) {
       if (input.model.providerID !== "anthropic") return
-      output.system.splice(
-        0,
-        output.system.length,
-        ...buildStrippedOpenCodeSystem(output.system),
-      )
+      if (/^\s*You are OpenCode\b/i.test(output.system[0] ?? "")) {
+        output.system.shift()
+      }
     },
 
     // Strip Anthropic beta flags and add headers Meridian uses for OpenCode sessions.

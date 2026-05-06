@@ -4,7 +4,6 @@ import {
   existsSync,
   mkdtempSync,
   mkdirSync,
-  writeFileSync,
   rmSync,
 } from "node:fs"
 import { join } from "node:path"
@@ -36,12 +35,7 @@ before(async () => {
   // the developer's real files.
   fakeHomeDir = mkdtempSync(join(tmpdir(), "owc-hooks-"))
   mkdirSync(join(fakeHomeDir, ".config", "meridian"), { recursive: true })
-  const opencodeDir = join(fakeHomeDir, ".config", "opencode")
-  mkdirSync(opencodeDir, { recursive: true })
-  writeFileSync(
-    join(opencodeDir, "AGENTS.md"),
-    "# Fake agents marker\nproject-specific instructions here.",
-  )
+  mkdirSync(join(fakeHomeDir, ".config", "opencode"), { recursive: true })
 
   previousEnv = {
     HOME: process.env.HOME,
@@ -112,14 +106,12 @@ test("config hook is a no-op when no anthropic provider exists", async () => {
 // system prompt handling
 // ---------------------------------------------------------------------------
 
-test("system.transform strips OpenCode prompt and keeps AGENTS.md with env", async () => {
-  const workspace = join(fakeHomeDir, "project-without-agents")
-  mkdirSync(workspace, { recursive: true })
-  const env = `<env>\nWorking directory: ${workspace}\n</env>`
+test("system.transform strips only the built-in OpenCode prompt", async () => {
   const output = {
     system: [
-      `OpenCode built-in prompt that should be discarded\n\n${env}`,
-      "More OpenCode instructions that should also be discarded",
+      "You are OpenCode, You and the user share the same workspace.",
+      "<env>\nWorking directory: /tmp/project\n</env>",
+      "# Fake agents marker\nproject-specific instructions here.",
     ],
   }
 
@@ -129,18 +121,18 @@ test("system.transform strips OpenCode prompt and keeps AGENTS.md with env", asy
   )
 
   assert.deepEqual(output.system, [
-    env,
+    "<env>\nWorking directory: /tmp/project\n</env>",
     "# Fake agents marker\nproject-specific instructions here.",
   ])
 })
 
-test("system.transform includes nearest project AGENTS.md before global rules", async () => {
-  const project = join(fakeHomeDir, "project-with-agents")
-  const workspace = join(project, "packages", "app")
-  mkdirSync(workspace, { recursive: true })
-  writeFileSync(join(project, "AGENTS.md"), "# Project agents marker")
-  const env = `<env>\nWorking directory: ${workspace}\n</env>`
-  const output = { system: [`OpenCode built-in prompt\n\n${env}`] }
+test("system.transform leaves already-stripped prompts unchanged", async () => {
+  const output = {
+    system: [
+      "<env>\nWorking directory: /tmp/project\n</env>",
+      "# Fake agents marker\nproject-specific instructions here.",
+    ],
+  }
 
   await hooks["experimental.chat.system.transform"](
     { model: { providerID: "anthropic" } },
@@ -148,8 +140,7 @@ test("system.transform includes nearest project AGENTS.md before global rules", 
   )
 
   assert.deepEqual(output.system, [
-    env,
-    "# Project agents marker",
+    "<env>\nWorking directory: /tmp/project\n</env>",
     "# Fake agents marker\nproject-specific instructions here.",
   ])
 })
