@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.4...v1.6.5) (2026-05-06)
+
+
+### Bug Fixes
+
+* meridian 1.42 issue 107 ([#135](https://github.com/ianjwhite99/opencode-with-claude/issues/135)) ([8de8650](https://github.com/ianjwhite99/opencode-with-claude/commit/8de8650e1b261dc08251d9d2e1e13b52f56aa17c))
+
 ## [1.6.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.3...v1.6.4) (2026-04-27)
 
 
