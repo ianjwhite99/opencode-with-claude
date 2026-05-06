@@ -1,4 +1,5 @@
 import type { AddressInfo } from "net"
+import { repairClaudeCodeLauncher } from "./claude-launcher.ts"
 import { classifyProxyLog, type LogFn } from "./logger.ts"
 import type { ProfileConfig } from "./meridian-config.ts"
 import { startProxyServer } from "@rynfar/meridian"
@@ -74,6 +75,8 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
     }
     origError.apply(console, args)
   }
+
+  repairClaudeCodeLauncher(log)
 
   const tryStart = (p: number) =>
     new Promise<Awaited<ReturnType<typeof startProxyServer>>>(

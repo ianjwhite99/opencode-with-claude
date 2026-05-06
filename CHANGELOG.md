@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.3...v1.6.4) (2026-04-27)
+
+
+### Bug Fixes
+
+* repair Claude Code launcher ([#133](https://github.com/ianjwhite99/opencode-with-claude/issues/133)) ([5920c05](https://github.com/ianjwhite99/opencode-with-claude/commit/5920c051d4be700017c778dfceab1da491fb811e))
+
 ## [1.6.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.2...v1.6.3) (2026-04-27)
 
 
