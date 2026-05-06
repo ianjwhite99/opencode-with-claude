@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.7](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.6...v1.6.7) (2026-05-06)
+
+
+### Bug Fixes
+
+* preserve AGENTS.md with stripped OpenCode prompt ([#140](https://github.com/ianjwhite99/opencode-with-claude/issues/140)) ([bd93ac9](https://github.com/ianjwhite99/opencode-with-claude/commit/bd93ac9f752f7c102132030a5ecd2805bc4940ec))
+
 ## [1.6.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.5...v1.6.6) (2026-05-06)
 
 
