@@ -3,6 +3,7 @@ import test, { before, after } from "node:test"
 import {
   mkdtempSync,
   mkdirSync,
+  readFileSync,
   rmSync,
 } from "node:fs"
 import { join } from "node:path"
@@ -107,6 +108,14 @@ test("config hook is a no-op when no anthropic provider exists", async () => {
 
 test("plugin leaves OpenCode system prompts untouched", () => {
   assert.equal(hooks["experimental.chat.system.transform"], undefined)
+})
+
+test("plugin defaults the OpenCode client prompt off for Meridian", () => {
+  const raw = readFileSync(
+    join(fakeHomeDir, ".config", "meridian", "sdk-features.json"),
+    "utf8",
+  )
+  assert.equal(JSON.parse(raw).opencode?.clientSystemPrompt, false)
 })
 
 // ---------------------------------------------------------------------------

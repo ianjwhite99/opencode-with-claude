@@ -1,6 +1,13 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs"
+import {
+  existsSync,
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+} from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 
@@ -216,6 +223,59 @@ test("missing config files return empty config with no warnings", async () => {
     assert.equal(cfg.sources.profiles, "none")
     assert.equal(cfg.sources.defaultProfile, "none")
     assert.equal(entries.length, 0)
+  })
+})
+
+test("defaults OpenCode client prompt off when sdk-features.json is missing", async () => {
+  await withFakeHome(async (meridianDir) => {
+    const { ensureOpenCodeClientPromptDefault } = await importLoader()
+    ensureOpenCodeClientPromptDefault()
+
+    const path = join(meridianDir, "sdk-features.json")
+    assert.equal(existsSync(path), true)
+    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
+      opencode: { clientSystemPrompt: false },
+    })
+  })
+})
+
+test("defaults OpenCode client prompt off without clobbering other SDK features", async () => {
+  await withFakeHome(async (meridianDir) => {
+    const path = join(meridianDir, "sdk-features.json")
+    writeFileSync(
+      path,
+      JSON.stringify({
+        opencode: { memory: true },
+        crush: { clientSystemPrompt: true },
+      }),
+    )
+
+    const { ensureOpenCodeClientPromptDefault } = await importLoader()
+    ensureOpenCodeClientPromptDefault()
+
+    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
+      opencode: { memory: true, clientSystemPrompt: false },
+      crush: { clientSystemPrompt: true },
+    })
+  })
+})
+
+test("preserves explicit OpenCode client prompt setting", async () => {
+  await withFakeHome(async (meridianDir) => {
+    const path = join(meridianDir, "sdk-features.json")
+    writeFileSync(
+      path,
+      JSON.stringify({
+        opencode: { clientSystemPrompt: true, memory: true },
+      }),
+    )
+
+    const { ensureOpenCodeClientPromptDefault } = await importLoader()
+    ensureOpenCodeClientPromptDefault()
+
+    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
+      opencode: { clientSystemPrompt: true, memory: true },
+    })
   })
 })
 

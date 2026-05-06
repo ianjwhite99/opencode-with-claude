@@ -16,7 +16,7 @@
  * This is a leaf module — no imports from proxy.ts or index.ts.
  */
 
-import { existsSync, readFileSync } from "fs"
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs"
 import { homedir } from "os"
 import { join } from "path"
 
@@ -49,6 +49,7 @@ export interface MeridianConfigResult {
 const MERIDIAN_DIR = () => join(homedir(), ".config", "meridian")
 const PROFILES_FILE = () => join(MERIDIAN_DIR(), "profiles.json")
 const SETTINGS_FILE = () => join(MERIDIAN_DIR(), "settings.json")
+const SDK_FEATURES_FILE = () => join(MERIDIAN_DIR(), "sdk-features.json")
 
 function warn(log: LogFn | undefined, message: string): void {
   void log?.("warn", `[opencode-with-claude] ${message}`)
@@ -198,4 +199,51 @@ export function summarizeMeridianConfig(cfg: MeridianConfigResult): string | und
   const profSrc = cfg.sources.profiles
   const activeSrc = cfg.sources.defaultProfile === "none" ? "first" : cfg.sources.defaultProfile
   return `loaded ${cfg.profiles.length} meridian profile(s) from ${profSrc}: ${ids} (active: ${active} [${activeSrc}])`
+}
+
+/**
+ * OpenCode's system prompt can cause Claude Max traffic to be classified as
+ * third-party usage. Default the client prompt off while preserving any user
+ * override written through Meridian's settings UI or sdk-features.json.
+ */
+export function ensureOpenCodeClientPromptDefault(log?: LogFn): void {
+  const path = SDK_FEATURES_FILE()
+  let config: Record<string, unknown> = {}
+
+  if (existsSync(path)) {
+    const raw = readJsonFile(path, log)
+    if (raw === undefined) return
+    if (!isRecord(raw)) {
+      warn(log, `${path} must be a JSON object; leaving client prompt default unchanged.`)
+      return
+    }
+    config = raw
+  }
+
+  const current = config.opencode
+  if (current !== undefined && !isRecord(current)) {
+    warn(log, `${path}: "opencode" must be a JSON object; leaving client prompt default unchanged.`)
+    return
+  }
+
+  const opencode = current ?? {}
+  if (Object.hasOwn(opencode, "clientSystemPrompt")) return
+
+  const nextConfig = {
+    ...config,
+    opencode: {
+      ...opencode,
+      clientSystemPrompt: false,
+    },
+  }
+
+  try {
+    mkdirSync(MERIDIAN_DIR(), { recursive: true })
+    const tmp = `${path}.tmp`
+    writeFileSync(tmp, JSON.stringify(nextConfig, null, 2))
+    renameSync(tmp, path)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    warn(log, `failed to update ${path}: ${msg}`)
+  }
 }

@@ -1,7 +1,11 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
 import { createLogger } from "./logger"
-import { loadMeridianConfig, summarizeMeridianConfig } from "./meridian-config"
+import {
+  ensureOpenCodeClientPromptDefault,
+  loadMeridianConfig,
+  summarizeMeridianConfig,
+} from "./meridian-config"
 import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
@@ -10,6 +14,8 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const meridianConfig = loadMeridianConfig(log)
   const summary = summarizeMeridianConfig(meridianConfig)
   if (summary) void log("info", summary)
+
+  ensureOpenCodeClientPromptDefault(log)
 
   const port = process.env.CLAUDE_PROXY_PORT || 3456
   const proxy = await startProxy({

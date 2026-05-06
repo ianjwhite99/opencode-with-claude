@@ -108,9 +108,14 @@ without restarting the proxy. The plugin does not need to do anything special
 for it to work — just edit the file and the next request picks it up. See
 Meridian's documentation for the full list of adapter keys.
 
+This plugin defaults OpenCode's client prompt off because forwarding the
+OpenCode prompt can cause Claude Max requests to be classified as third-party
+usage. You can re-enable it by setting `clientSystemPrompt` to `true`.
+
 ```json
 {
   "opencode": {
+    "clientSystemPrompt": false,
     "memory": true,
     "thinking": "enabled",
     "maxBudgetUsd": 0.5
