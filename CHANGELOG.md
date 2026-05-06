@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.6](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.5...v1.6.6) (2026-05-06)
+
+
+### Bug Fixes
+
+* default opencode client prompt off ([#138](https://github.com/ianjwhite99/opencode-with-claude/issues/138)) ([faba23c](https://github.com/ianjwhite99/opencode-with-claude/commit/faba23cea4f9f50bc9c98d518d4f7162bc9cfb07))
+
 ## [1.6.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.4...v1.6.5) (2026-05-06)
 
 
