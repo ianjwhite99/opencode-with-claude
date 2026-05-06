@@ -1,7 +1,6 @@
 import assert from "node:assert/strict"
 import test, { before, after } from "node:test"
 import {
-  existsSync,
   mkdtempSync,
   mkdirSync,
   rmSync,
@@ -31,24 +30,18 @@ function makeClient() {
 }
 
 before(async () => {
-  // Isolate ~/.config/meridian and ~/.config/opencode so tests don't read
-  // the developer's real files.
+  // Isolate ~/.config/meridian so tests don't read the developer's real files.
   fakeHomeDir = mkdtempSync(join(tmpdir(), "owc-hooks-"))
   mkdirSync(join(fakeHomeDir, ".config", "meridian"), { recursive: true })
-  mkdirSync(join(fakeHomeDir, ".config", "opencode"), { recursive: true })
 
   previousEnv = {
     HOME: process.env.HOME,
     USERPROFILE: process.env.USERPROFILE,
-    OPENCODE_CONFIG_DIR: process.env.OPENCODE_CONFIG_DIR,
-    XDG_CONFIG_HOME: process.env.XDG_CONFIG_HOME,
     CLAUDE_PROXY_PORT: process.env.CLAUDE_PROXY_PORT,
   }
 
   process.env.HOME = fakeHomeDir
   process.env.USERPROFILE = fakeHomeDir
-  delete process.env.OPENCODE_CONFIG_DIR
-  delete process.env.XDG_CONFIG_HOME
 
   // Use a random OS-assigned port so multiple runs don't collide.
   process.env.CLAUDE_PROXY_PORT = "0"
@@ -106,61 +99,42 @@ test("config hook is a no-op when no anthropic provider exists", async () => {
 // system prompt handling
 // ---------------------------------------------------------------------------
 
-test("system.transform strips only the built-in OpenCode prompt", async () => {
-  const output = {
-    system: [
-      "You are OpenCode, You and the user share the same workspace.",
-      "<env>\nWorking directory: /tmp/project\n</env>",
-      "# Fake agents marker\nproject-specific instructions here.",
-    ],
-  }
+test("system.transform strips the OpenCode prompt and keeps assembled context", async () => {
+  const opencodePrompt = [
+    "You are OpenCode, You and the user share the same workspace.",
+    "",
+    "OpenCode-specific tool and behavior instructions that should be stripped.",
+  ].join("\n")
+  const env = "<env>\nWorking directory: /tmp/project\n</env>"
+  const agents = "# Fake agents marker\nproject-specific instructions here."
+  const output = { system: [opencodePrompt, env, agents] }
 
   await hooks["experimental.chat.system.transform"](
     { model: { providerID: "anthropic" } },
     output,
   )
 
-  assert.deepEqual(output.system, [
-    "<env>\nWorking directory: /tmp/project\n</env>",
-    "# Fake agents marker\nproject-specific instructions here.",
-  ])
-})
-
-test("system.transform leaves already-stripped prompts unchanged", async () => {
-  const output = {
-    system: [
-      "<env>\nWorking directory: /tmp/project\n</env>",
-      "# Fake agents marker\nproject-specific instructions here.",
-    ],
-  }
-
-  await hooks["experimental.chat.system.transform"](
-    { model: { providerID: "anthropic" } },
-    output,
+  assert.equal(output.system.includes(opencodePrompt), false)
+  assert.equal(
+    output.system.some((entry) => entry.includes("OpenCode-specific")),
+    false,
   )
-
-  assert.deepEqual(output.system, [
-    "<env>\nWorking directory: /tmp/project\n</env>",
-    "# Fake agents marker\nproject-specific instructions here.",
-  ])
+  assert.deepEqual(output.system, [env, agents])
 })
 
-test("system.transform is a no-op for non-anthropic providers", async () => {
-  const output = { system: ["keep me intact"] }
+test("system.transform ignores non-anthropic providers", async () => {
+  const system = [
+    "You are OpenCode, You and the user share the same workspace.",
+    "<env>\nWorking directory: /tmp/project\n</env>",
+  ]
+  const output = { system: [...system] }
 
   await hooks["experimental.chat.system.transform"](
     { model: { providerID: "openai" } },
     output,
   )
 
-  assert.deepEqual(output.system, ["keep me intact"])
-})
-
-test("plugin does not disable Meridian client prompt passthrough", () => {
-  assert.equal(
-    existsSync(join(fakeHomeDir, ".config", "meridian", "sdk-features.json")),
-    false,
-  )
+  assert.deepEqual(output.system, system)
 })
 
 // ---------------------------------------------------------------------------
