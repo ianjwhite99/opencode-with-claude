@@ -1,9 +1,10 @@
 import assert from "node:assert/strict"
 import test, { before, after } from "node:test"
 import {
+  existsSync,
   mkdtempSync,
   mkdirSync,
-  readFileSync,
+  writeFileSync,
   rmSync,
 } from "node:fs"
 import { join } from "node:path"
@@ -35,7 +36,12 @@ before(async () => {
   // the developer's real files.
   fakeHomeDir = mkdtempSync(join(tmpdir(), "owc-hooks-"))
   mkdirSync(join(fakeHomeDir, ".config", "meridian"), { recursive: true })
-  mkdirSync(join(fakeHomeDir, ".config", "opencode"), { recursive: true })
+  const opencodeDir = join(fakeHomeDir, ".config", "opencode")
+  mkdirSync(opencodeDir, { recursive: true })
+  writeFileSync(
+    join(opencodeDir, "AGENTS.md"),
+    "# Fake agents marker\nproject-specific instructions here.",
+  )
 
   previousEnv = {
     HOME: process.env.HOME,
@@ -106,16 +112,64 @@ test("config hook is a no-op when no anthropic provider exists", async () => {
 // system prompt handling
 // ---------------------------------------------------------------------------
 
-test("plugin leaves OpenCode system prompts untouched", () => {
-  assert.equal(hooks["experimental.chat.system.transform"], undefined)
+test("system.transform strips OpenCode prompt and keeps AGENTS.md with env", async () => {
+  const workspace = join(fakeHomeDir, "project-without-agents")
+  mkdirSync(workspace, { recursive: true })
+  const env = `<env>\nWorking directory: ${workspace}\n</env>`
+  const output = {
+    system: [
+      `OpenCode built-in prompt that should be discarded\n\n${env}`,
+      "More OpenCode instructions that should also be discarded",
+    ],
+  }
+
+  await hooks["experimental.chat.system.transform"](
+    { model: { providerID: "anthropic" } },
+    output,
+  )
+
+  assert.deepEqual(output.system, [
+    env,
+    "# Fake agents marker\nproject-specific instructions here.",
+  ])
 })
 
-test("plugin defaults the OpenCode client prompt off for Meridian", () => {
-  const raw = readFileSync(
-    join(fakeHomeDir, ".config", "meridian", "sdk-features.json"),
-    "utf8",
+test("system.transform includes nearest project AGENTS.md before global rules", async () => {
+  const project = join(fakeHomeDir, "project-with-agents")
+  const workspace = join(project, "packages", "app")
+  mkdirSync(workspace, { recursive: true })
+  writeFileSync(join(project, "AGENTS.md"), "# Project agents marker")
+  const env = `<env>\nWorking directory: ${workspace}\n</env>`
+  const output = { system: [`OpenCode built-in prompt\n\n${env}`] }
+
+  await hooks["experimental.chat.system.transform"](
+    { model: { providerID: "anthropic" } },
+    output,
   )
-  assert.equal(JSON.parse(raw).opencode?.clientSystemPrompt, false)
+
+  assert.deepEqual(output.system, [
+    env,
+    "# Project agents marker",
+    "# Fake agents marker\nproject-specific instructions here.",
+  ])
+})
+
+test("system.transform is a no-op for non-anthropic providers", async () => {
+  const output = { system: ["keep me intact"] }
+
+  await hooks["experimental.chat.system.transform"](
+    { model: { providerID: "openai" } },
+    output,
+  )
+
+  assert.deepEqual(output.system, ["keep me intact"])
+})
+
+test("plugin does not disable Meridian client prompt passthrough", () => {
+  assert.equal(
+    existsSync(join(fakeHomeDir, ".config", "meridian", "sdk-features.json")),
+    false,
+  )
 })
 
 // ---------------------------------------------------------------------------

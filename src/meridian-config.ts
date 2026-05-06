@@ -16,7 +16,7 @@
  * This is a leaf module — no imports from proxy.ts or index.ts.
  */
 
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "fs"
+import { existsSync, readFileSync, renameSync, writeFileSync } from "fs"
 import { homedir } from "os"
 import { join } from "path"
 
@@ -202,43 +202,37 @@ export function summarizeMeridianConfig(cfg: MeridianConfigResult): string | und
 }
 
 /**
- * OpenCode's system prompt can cause Claude Max traffic to be classified as
- * third-party usage. Default the client prompt off while preserving any user
- * override written through Meridian's settings UI or sdk-features.json.
+ * The plugin strips OpenCode's built-in system prompt before requests reach
+ * Meridian, so Meridian must keep client prompt pass-through enabled for
+ * AGENTS.md and cwd context. Remove the 1.6.6 default that wrote this off.
  */
-export function ensureOpenCodeClientPromptDefault(log?: LogFn): void {
+export function ensureOpenCodeClientPromptPassthrough(log?: LogFn): void {
   const path = SDK_FEATURES_FILE()
-  let config: Record<string, unknown> = {}
+  if (!existsSync(path)) return
 
-  if (existsSync(path)) {
-    const raw = readJsonFile(path, log)
-    if (raw === undefined) return
-    if (!isRecord(raw)) {
-      warn(log, `${path} must be a JSON object; leaving client prompt default unchanged.`)
-      return
-    }
-    config = raw
-  }
-
-  const current = config.opencode
-  if (current !== undefined && !isRecord(current)) {
-    warn(log, `${path}: "opencode" must be a JSON object; leaving client prompt default unchanged.`)
+  const raw = readJsonFile(path, log)
+  if (raw === undefined) return
+  if (!isRecord(raw)) {
+    warn(log, `${path} must be a JSON object; leaving client prompt passthrough unchanged.`)
     return
   }
 
-  const opencode = current ?? {}
-  if (Object.hasOwn(opencode, "clientSystemPrompt")) return
-
-  const nextConfig = {
-    ...config,
-    opencode: {
-      ...opencode,
-      clientSystemPrompt: false,
-    },
+  const config = raw
+  const current = config.opencode
+  if (current !== undefined && !isRecord(current)) {
+    warn(log, `${path}: "opencode" must be a JSON object; leaving client prompt passthrough unchanged.`)
+    return
   }
 
+  if (!current || current.clientSystemPrompt !== false) return
+
+  const opencode = { ...current }
+  delete opencode.clientSystemPrompt
+  const nextConfig = { ...config }
+  if (Object.keys(opencode).length > 0) nextConfig.opencode = opencode
+  else delete nextConfig.opencode
+
   try {
-    mkdirSync(MERIDIAN_DIR(), { recursive: true })
     const tmp = `${path}.tmp`
     writeFileSync(tmp, JSON.stringify(nextConfig, null, 2))
     renameSync(tmp, path)
