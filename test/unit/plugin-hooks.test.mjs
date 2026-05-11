@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import test, { before, after } from "node:test"
 import {
+  existsSync,
   mkdtempSync,
   mkdirSync,
   rmSync,
@@ -38,10 +39,14 @@ before(async () => {
     HOME: process.env.HOME,
     USERPROFILE: process.env.USERPROFILE,
     CLAUDE_PROXY_PORT: process.env.CLAUDE_PROXY_PORT,
+    MERIDIAN_WORKDIR: process.env.MERIDIAN_WORKDIR,
+    CLAUDE_PROXY_WORKDIR: process.env.CLAUDE_PROXY_WORKDIR,
   }
 
   process.env.HOME = fakeHomeDir
   process.env.USERPROFILE = fakeHomeDir
+  delete process.env.MERIDIAN_WORKDIR
+  delete process.env.CLAUDE_PROXY_WORKDIR
 
   // Use a random OS-assigned port so multiple runs don't collide.
   process.env.CLAUDE_PROXY_PORT = "0"
@@ -49,7 +54,11 @@ before(async () => {
   const { ClaudeMaxPlugin } = await import(
     `../../dist/index.js?t=${Date.now()}${Math.random()}`
   )
-  hooks = await ClaudeMaxPlugin({ client: makeClient() })
+  hooks = await ClaudeMaxPlugin({
+    client: makeClient(),
+    directory: fakeHomeDir,
+    worktree: fakeHomeDir,
+  })
 })
 
 after(async () => {
@@ -99,13 +108,26 @@ test("config hook is a no-op when no anthropic provider exists", async () => {
 // system prompt handling
 // ---------------------------------------------------------------------------
 
-test("system.transform strips the OpenCode prompt and keeps assembled context", async () => {
+test("system.transform scrubs OpenCode fingerprints and keeps user context", async () => {
   const opencodePrompt = [
-    "You are OpenCode, You and the user share the same workspace.",
+    "You are OpenCode, the best coding agent on the planet.",
     "",
-    "OpenCode-specific tool and behavior instructions that should be stripped.",
+    "If the user asks for help or wants to give feedback inform them of the following:",
+    "- To give feedback, users should report the issue at",
+    "  https://github.com/anomalyco/opencode",
+    "",
+    "When the user directly asks about OpenCode, use docs from https://opencode.ai/docs",
+    "",
+    "It is best for the user if OpenCode honestly applies rigorous standards.",
+    "Keep this tool guidance.",
   ].join("\n")
-  const env = "<env>\nWorking directory: /tmp/project\n</env>"
+  const env = [
+    "You are powered by the model named claude-opus-4-6. The exact model ID is anthropic/claude-opus-4-6",
+    "Here is some useful information about the environment you are running in:",
+    "<env>",
+    "  Working directory: /tmp/project",
+    "</env>",
+  ].join("\n")
   const agents = "# Fake agents marker\nproject-specific instructions here."
   const output = { system: [opencodePrompt, env, agents] }
 
@@ -114,12 +136,18 @@ test("system.transform strips the OpenCode prompt and keeps assembled context", 
     output,
   )
 
-  assert.equal(output.system.includes(opencodePrompt), false)
-  assert.equal(
-    output.system.some((entry) => entry.includes("OpenCode-specific")),
-    false,
-  )
-  assert.deepEqual(output.system, [env, agents])
+  assert.equal(output.system.length, 1)
+  const scrubbed = output.system[0]
+  assert.match(scrubbed, /You are an expert coding assistant/)
+  assert.match(scrubbed, /Keep this tool guidance/)
+  assert.match(scrubbed, /Fake agents marker/)
+  assert.match(scrubbed, /the assistant honestly applies/)
+  assert.doesNotMatch(scrubbed, /OpenCode/)
+  assert.doesNotMatch(scrubbed, /github\.com\/anomalyco\/opencode/)
+  assert.doesNotMatch(scrubbed, /opencode\.ai\/docs/)
+  assert.doesNotMatch(scrubbed, /powered by the model named/)
+  assert.doesNotMatch(scrubbed, /<env>/)
+  assert.doesNotMatch(scrubbed, /Working directory:/)
 })
 
 test("system.transform ignores non-anthropic providers", async () => {
@@ -135,6 +163,17 @@ test("system.transform ignores non-anthropic providers", async () => {
   )
 
   assert.deepEqual(output.system, system)
+})
+
+test("plugin does not mutate Meridian sdk-features.json", () => {
+  assert.equal(
+    existsSync(join(fakeHomeDir, ".config", "meridian", "sdk-features.json")),
+    false,
+  )
+})
+
+test("plugin provides Meridian cwd through process env", () => {
+  assert.equal(process.env.MERIDIAN_WORKDIR, fakeHomeDir)
 })
 
 // ---------------------------------------------------------------------------

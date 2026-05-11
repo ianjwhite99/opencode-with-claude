@@ -1,21 +1,27 @@
 import type { Plugin } from "@opencode-ai/plugin"
+import { scrubOpencodeFingerprints } from "@rynfar/meridian-plugin-opencode-scrub"
 
 import { createLogger } from "./logger"
 import {
-  ensureOpenCodeClientPromptPassthrough,
   loadMeridianConfig,
   summarizeMeridianConfig,
 } from "./meridian-config"
 import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
-export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
+export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
   const log = createLogger(client)
+
+  if (
+    directory &&
+    !process.env.MERIDIAN_WORKDIR &&
+    !process.env.CLAUDE_PROXY_WORKDIR
+  ) {
+    process.env.MERIDIAN_WORKDIR = directory
+  }
 
   const meridianConfig = loadMeridianConfig(log)
   const summary = summarizeMeridianConfig(meridianConfig)
   if (summary) void log("info", summary)
-
-  ensureOpenCodeClientPromptPassthrough(log)
 
   const port = process.env.CLAUDE_PROXY_PORT || 3456
   const proxy = await startProxy({
@@ -38,11 +44,13 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
       ;(anthropic.options ??= {}).baseURL = baseURL
     },
 
-    // Keep OpenCode-assembled context, but strip the built-in OpenCode prompt.
+    // Keep user context, but scrub OpenCode fingerprints before Meridian passthrough.
     async "experimental.chat.system.transform"(input, output) {
       if (input.model.providerID !== "anthropic") return
-      if (/^\s*You are OpenCode\b/i.test(output.system[0] ?? "")) {
-        output.system.shift()
+      const systemContext = output.system.join("\n\n")
+      const scrubbed = scrubOpencodeFingerprints(systemContext)
+      if (scrubbed !== systemContext) {
+        output.system.splice(0, output.system.length, scrubbed)
       }
     },
 

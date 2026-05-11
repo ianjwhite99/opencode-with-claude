@@ -16,7 +16,7 @@
  * This is a leaf module — no imports from proxy.ts or index.ts.
  */
 
-import { existsSync, readFileSync, renameSync, writeFileSync } from "fs"
+import { existsSync, readFileSync } from "fs"
 import { homedir } from "os"
 import { join } from "path"
 
@@ -49,7 +49,6 @@ export interface MeridianConfigResult {
 const MERIDIAN_DIR = () => join(homedir(), ".config", "meridian")
 const PROFILES_FILE = () => join(MERIDIAN_DIR(), "profiles.json")
 const SETTINGS_FILE = () => join(MERIDIAN_DIR(), "settings.json")
-const SDK_FEATURES_FILE = () => join(MERIDIAN_DIR(), "sdk-features.json")
 
 function warn(log: LogFn | undefined, message: string): void {
   void log?.("warn", `[opencode-with-claude] ${message}`)
@@ -199,45 +198,4 @@ export function summarizeMeridianConfig(cfg: MeridianConfigResult): string | und
   const profSrc = cfg.sources.profiles
   const activeSrc = cfg.sources.defaultProfile === "none" ? "first" : cfg.sources.defaultProfile
   return `loaded ${cfg.profiles.length} meridian profile(s) from ${profSrc}: ${ids} (active: ${active} [${activeSrc}])`
-}
-
-/**
- * The plugin strips OpenCode's built-in system prompt before requests reach
- * Meridian, so Meridian must keep client prompt pass-through enabled for
- * AGENTS.md and cwd context. Remove the 1.6.6 default that wrote this off.
- */
-export function ensureOpenCodeClientPromptPassthrough(log?: LogFn): void {
-  const path = SDK_FEATURES_FILE()
-  if (!existsSync(path)) return
-
-  const raw = readJsonFile(path, log)
-  if (raw === undefined) return
-  if (!isRecord(raw)) {
-    warn(log, `${path} must be a JSON object; leaving client prompt passthrough unchanged.`)
-    return
-  }
-
-  const config = raw
-  const current = config.opencode
-  if (current !== undefined && !isRecord(current)) {
-    warn(log, `${path}: "opencode" must be a JSON object; leaving client prompt passthrough unchanged.`)
-    return
-  }
-
-  if (!current || current.clientSystemPrompt !== false) return
-
-  const opencode = { ...current }
-  delete opencode.clientSystemPrompt
-  const nextConfig = { ...config }
-  if (Object.keys(opencode).length > 0) nextConfig.opencode = opencode
-  else delete nextConfig.opencode
-
-  try {
-    const tmp = `${path}.tmp`
-    writeFileSync(tmp, JSON.stringify(nextConfig, null, 2))
-    renameSync(tmp, path)
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    warn(log, `failed to update ${path}: ${msg}`)
-  }
 }

@@ -108,9 +108,11 @@ without restarting the proxy. The plugin does not need to do anything special
 for it to work — just edit the file and the next request picks it up. See
 Meridian's documentation for the full list of adapter keys.
 
-This plugin keeps Meridian's client prompt pass-through enabled, but strips
-OpenCode's built-in system prompt before forwarding. OpenCode-assembled context
-such as cwd, `AGENTS.md`, and configured instructions is preserved.
+This plugin does not edit Meridian's SDK feature file. When Meridian's default
+client prompt pass-through is enabled, the plugin scrubs OpenCode-identifying
+prompt fingerprints with `@rynfar/meridian-plugin-opencode-scrub` before
+forwarding. User context such as `AGENTS.md` and configured instructions is
+preserved, while cwd is forwarded to Meridian through the process environment.
 
 ```json
 {

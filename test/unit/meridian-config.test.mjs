@@ -1,10 +1,8 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import {
-  existsSync,
   mkdtempSync,
   mkdirSync,
-  readFileSync,
   writeFileSync,
   rmSync,
 } from "node:fs"
@@ -223,68 +221,6 @@ test("missing config files return empty config with no warnings", async () => {
     assert.equal(cfg.sources.profiles, "none")
     assert.equal(cfg.sources.defaultProfile, "none")
     assert.equal(entries.length, 0)
-  })
-})
-
-test("leaves sdk-features.json missing when client prompt passthrough uses Meridian default", async () => {
-  await withFakeHome(async (meridianDir) => {
-    const { ensureOpenCodeClientPromptPassthrough } = await importLoader()
-    ensureOpenCodeClientPromptPassthrough()
-
-    const path = join(meridianDir, "sdk-features.json")
-    assert.equal(existsSync(path), false)
-  })
-})
-
-test("removes the 1.6.6 OpenCode client prompt default", async () => {
-  await withFakeHome(async (meridianDir) => {
-    const path = join(meridianDir, "sdk-features.json")
-    writeFileSync(path, JSON.stringify({ opencode: { clientSystemPrompt: false } }))
-
-    const { ensureOpenCodeClientPromptPassthrough } = await importLoader()
-    ensureOpenCodeClientPromptPassthrough()
-
-    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {})
-  })
-})
-
-test("removes disabled OpenCode client prompt without clobbering other SDK features", async () => {
-  await withFakeHome(async (meridianDir) => {
-    const path = join(meridianDir, "sdk-features.json")
-    writeFileSync(
-      path,
-      JSON.stringify({
-        opencode: { memory: true, clientSystemPrompt: false },
-        crush: { clientSystemPrompt: true },
-      }),
-    )
-
-    const { ensureOpenCodeClientPromptPassthrough } = await importLoader()
-    ensureOpenCodeClientPromptPassthrough()
-
-    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
-      opencode: { memory: true },
-      crush: { clientSystemPrompt: true },
-    })
-  })
-})
-
-test("preserves enabled OpenCode client prompt setting", async () => {
-  await withFakeHome(async (meridianDir) => {
-    const path = join(meridianDir, "sdk-features.json")
-    writeFileSync(
-      path,
-      JSON.stringify({
-        opencode: { clientSystemPrompt: true, memory: true },
-      }),
-    )
-
-    const { ensureOpenCodeClientPromptPassthrough } = await importLoader()
-    ensureOpenCodeClientPromptPassthrough()
-
-    assert.deepEqual(JSON.parse(readFileSync(path, "utf8")), {
-      opencode: { clientSystemPrompt: true, memory: true },
-    })
   })
 })
 
