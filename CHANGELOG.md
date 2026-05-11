@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.8](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.7...v1.6.8) (2026-05-11)
+
+
+### Bug Fixes
+
+* scrub OpenCode prompt without Meridian config mutation ([#145](https://github.com/ianjwhite99/opencode-with-claude/issues/145)) ([2837cf4](https://github.com/ianjwhite99/opencode-with-claude/commit/2837cf480ed83cf1abebb8dbb464068b883aea20))
+
 ## [1.6.7](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.6...v1.6.7) (2026-05-06)
 
 
