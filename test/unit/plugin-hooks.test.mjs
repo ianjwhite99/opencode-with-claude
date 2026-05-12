@@ -26,6 +26,12 @@ function makeClient() {
         logEntries.push(body)
         return {}
       },
+      agents: async () => ({
+        data: [
+          { name: "explore", mode: "subagent" },
+          { name: "build", mode: "primary" },
+        ],
+      }),
     },
   }
 }
@@ -206,6 +212,21 @@ test("chat.headers forwards agent mode and sanitized agent name", async () => {
       agent: { name: "explore\u200b", mode: "subagent" },
       model: { providerID: "anthropic" },
       message: { id: "msg-abc" },
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-agent-name"], "explore")
+})
+
+test("chat.headers resolves string agent modes from the OpenCode agent registry", async () => {
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: "explore",
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc", agent: "explore" },
     },
     output,
   )

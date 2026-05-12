@@ -8,8 +8,76 @@ import {
 } from "./meridian-config"
 import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
+type AgentMode = "primary" | "subagent" | "all"
+
+type RuntimeAgent =
+  | string
+  | {
+      name?: unknown
+      mode?: unknown
+    }
+  | undefined
+
+function sanitizeAgentName(value: unknown): string {
+  const sanitized = String(value ?? "unknown")
+    .replace(/[^\x20-\x7E]/g, "")
+    .trim()
+  return sanitized || "unknown"
+}
+
+function parseAgentMode(value: unknown): AgentMode | undefined {
+  if (value === "primary" || value === "subagent" || value === "all") {
+    return value
+  }
+  return undefined
+}
+
+function getAgentName(agent: RuntimeAgent): string {
+  if (typeof agent === "object" && agent !== null) {
+    return sanitizeAgentName(agent.name)
+  }
+
+  return sanitizeAgentName(agent)
+}
+
+function getAgentMode(agent: RuntimeAgent): AgentMode | undefined {
+  if (typeof agent === "object" && agent !== null) {
+    return parseAgentMode(agent.mode)
+  }
+
+  return undefined
+}
+
 export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
   const log = createLogger(client)
+  const agentModes = new Map<string, AgentMode>()
+  let agentModesLoaded: Promise<void> | undefined
+
+  const loadAgentModes = async () => {
+    try {
+      const response = await client.app.agents(
+        directory ? { query: { directory } } : {}
+      )
+      if (response.error || !Array.isArray(response.data)) return
+
+      for (const agent of response.data) {
+        const mode = parseAgentMode(agent.mode)
+        if (!mode) continue
+
+        const name = sanitizeAgentName(agent.name)
+        agentModes.set(name, mode)
+        agentModes.set(name.toLowerCase(), mode)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      void log("debug", `could not load OpenCode agent modes: ${msg}`)
+    }
+  }
+
+  const ensureAgentModesLoaded = async () => {
+    agentModesLoaded ??= loadAgentModes()
+    await agentModesLoaded
+  }
 
   if (
     directory &&
@@ -59,21 +127,20 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
       if (incoming.model.providerID !== "anthropic") return
       delete output.headers["anthropic-beta"]
 
-      const agent = incoming.agent as
-        | { name?: string; mode?: string }
-        | string
-        | undefined
-      const agentDetails =
-        typeof agent === "object" && agent !== null ? agent : undefined
-      const rawAgentName = agentDetails?.name ?? String(agent ?? "unknown")
-      const agentMode = agentDetails?.mode ?? "primary"
+      const agent = incoming.agent as RuntimeAgent
+      const agentName = getAgentName(agent ?? incoming.message.agent)
+      let agentMode = getAgentMode(agent)
+      if (!agentMode) {
+        await ensureAgentModesLoaded()
+        agentMode =
+          agentModes.get(agentName) ?? agentModes.get(agentName.toLowerCase())
+      }
+      agentMode ??= "primary"
 
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
       output.headers["x-opencode-agent-mode"] = agentMode
-      output.headers["x-opencode-agent-name"] = rawAgentName
-        .replace(/[^\x20-\x7E]/g, "")
-        .trim() || "unknown"
+      output.headers["x-opencode-agent-name"] = agentName
     },
   }
 }
