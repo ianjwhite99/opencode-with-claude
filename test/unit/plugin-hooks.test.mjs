@@ -194,23 +194,27 @@ test("chat.headers strips anthropic-beta and adds session + request IDs", async 
   assert.equal(output.headers["x-opencode-session"], "sess-123")
   assert.equal(output.headers["x-opencode-request"], "msg-abc")
   assert.equal(output.headers["x-opencode-agent-mode"], "primary")
-  assert.equal(output.headers["x-opencode-agent-name"], "unknown")
   assert.equal(output.headers.keep, "me", "other headers should be preserved")
 })
 
-test("chat.headers forwards agent mode and sanitized agent name", async () => {
+test("chat.headers strips non-ASCII before mode lookup", async () => {
+  await hooks.config({
+    agent: {
+      explore: { mode: "subagent" },
+    },
+  })
+
   const output = { headers: {} }
   await hooks["chat.headers"](
     {
       sessionID: "sess-123",
-      agent: { name: "explore\u200b", mode: "subagent" },
+      agent: "explore\u200b",
       model: { providerID: "anthropic" },
       message: { id: "msg-abc" },
     },
     output,
   )
   assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
-  assert.equal(output.headers["x-opencode-agent-name"], "explore")
 })
 
 test("chat.headers resolves string agent modes from OpenCode config", async () => {
@@ -232,7 +236,6 @@ test("chat.headers resolves string agent modes from OpenCode config", async () =
     output,
   )
   assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
-  assert.equal(output.headers["x-opencode-agent-name"], "explore")
 })
 
 test("chat.headers is safe when anthropic-beta header was never present", async () => {
@@ -248,7 +251,6 @@ test("chat.headers is safe when anthropic-beta header was never present", async 
   assert.equal(output.headers["x-opencode-session"], "s")
   assert.equal(output.headers["x-opencode-request"], "m")
   assert.equal(output.headers["x-opencode-agent-mode"], "primary")
-  assert.equal(output.headers["x-opencode-agent-name"], "unknown")
 })
 
 test("chat.headers is a no-op for non-anthropic providers", async () => {

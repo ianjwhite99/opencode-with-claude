@@ -42,7 +42,6 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
     async config(input) {
       for (const [name, agent] of Object.entries(input.agent ?? {})) {
         if (!agent?.mode) continue
-        agentModes.set(name, agent.mode)
         agentModes.set(name.toLowerCase(), agent.mode)
       }
 
@@ -66,25 +65,14 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
       if (incoming.model.providerID !== "anthropic") return
       delete output.headers["anthropic-beta"]
 
-      const agent = incoming.agent as
-        | { name?: string; mode?: string }
-        | string
-        | undefined
-      const agentNameSource =
-        typeof agent === "object" && agent !== null ? agent.name : agent
-      const agentName =
-        String(agentNameSource ?? "unknown").replace(/[^\x20-\x7E]/g, "").trim() ||
+      const agentKey =
+        String(incoming.agent ?? "unknown").replace(/[^\x20-\x7E]/g, "").trim() ||
         "unknown"
-      const agentMode =
-        (typeof agent === "object" && agent !== null ? agent.mode : undefined) ??
-        agentModes.get(agentName) ??
-        agentModes.get(agentName.toLowerCase()) ??
-        "primary"
+      const agentMode = agentModes.get(agentKey.toLowerCase()) ?? "primary"
 
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
       output.headers["x-opencode-agent-mode"] = agentMode
-      output.headers["x-opencode-agent-name"] = agentName
     },
   }
 }
