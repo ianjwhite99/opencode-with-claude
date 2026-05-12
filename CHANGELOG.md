@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.11](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.10...v1.6.11) (2026-05-12)
+
+
+### Bug Fixes
+
+* use runtime agent mode headers ([#151](https://github.com/ianjwhite99/opencode-with-claude/issues/151)) ([f356911](https://github.com/ianjwhite99/opencode-with-claude/commit/f3569119767cd092b1fe60a696082b33fd09ab55))
+
 ## [1.6.10](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.9...v1.6.10) (2026-05-12)
 
 
