@@ -10,28 +10,7 @@ import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
   const log = createLogger(client)
-  let agentModesLoaded: Promise<Map<string, string>> | undefined
-
-  const loadAgentModes = async () => {
-    const modes = new Map<string, string>()
-
-    try {
-      const response = await client.app.agents(
-        directory ? { query: { directory } } : {}
-      )
-      if (response.error || !Array.isArray(response.data)) return modes
-
-      for (const agent of response.data) {
-        modes.set(agent.name, agent.mode)
-        modes.set(agent.name.toLowerCase(), agent.mode)
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      void log("debug", `could not load OpenCode agent modes: ${msg}`)
-    }
-
-    return modes
-  }
+  const agentModes = new Map<string, string>()
 
   if (
     directory &&
@@ -61,6 +40,12 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
   return {
     // Set the base URL for the Anthropic provider
     async config(input) {
+      for (const [name, agent] of Object.entries(input.agent ?? {})) {
+        if (!agent?.mode) continue
+        agentModes.set(name, agent.mode)
+        agentModes.set(name.toLowerCase(), agent.mode)
+      }
+
       const anthropic = input.provider?.anthropic
       if (!anthropic) return
       ;(anthropic.options ??= {}).baseURL = baseURL
@@ -92,8 +77,6 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
         rawAgentName.replace(/[^\x20-\x7E]/g, "").trim() || "unknown"
       let agentMode = agentDetails?.mode
       if (!agentMode) {
-        agentModesLoaded ??= loadAgentModes()
-        const agentModes = await agentModesLoaded
         agentMode =
           agentModes.get(agentName) ?? agentModes.get(agentName.toLowerCase())
       }
