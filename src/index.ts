@@ -70,17 +70,16 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
         | { name?: string; mode?: string }
         | string
         | undefined
-      const agentDetails =
-        typeof agent === "object" && agent !== null ? agent : undefined
-      const rawAgentName = agentDetails?.name ?? String(agent ?? "unknown")
+      const agentNameSource =
+        typeof agent === "object" && agent !== null ? agent.name : agent
       const agentName =
-        rawAgentName.replace(/[^\x20-\x7E]/g, "").trim() || "unknown"
-      let agentMode = agentDetails?.mode
-      if (!agentMode) {
-        agentMode =
-          agentModes.get(agentName) ?? agentModes.get(agentName.toLowerCase())
-      }
-      agentMode ??= "primary"
+        String(agentNameSource ?? "unknown").replace(/[^\x20-\x7E]/g, "").trim() ||
+        "unknown"
+      const agentMode =
+        (typeof agent === "object" && agent !== null ? agent.mode : undefined) ??
+        agentModes.get(agentName) ??
+        agentModes.get(agentName.toLowerCase()) ??
+        "primary"
 
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
