@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.9](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.8...v1.6.9) (2026-05-12)
+
+
+### Bug Fixes
+
+* subagent agent mode detection ([#147](https://github.com/ianjwhite99/opencode-with-claude/issues/147)) ([f91baa3](https://github.com/ianjwhite99/opencode-with-claude/commit/f91baa39cd560ad341e2259574c6e3bf2a4e2e84))
+
 ## [1.6.8](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.7...v1.6.8) (2026-05-11)
 
 
