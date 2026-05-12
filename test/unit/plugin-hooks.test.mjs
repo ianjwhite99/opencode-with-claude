@@ -4,10 +4,13 @@ import {
   existsSync,
   mkdtempSync,
   mkdirSync,
+  readdirSync,
+  readFileSync,
   rmSync,
 } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
+import { pathToFileURL } from "node:url"
 
 // Tier-2 coverage: drive each plugin hook with a fake OpenCode client.
 // Runs a single real proxy instance for the whole file; the OS cleans it up
@@ -17,6 +20,25 @@ let hooks
 let fakeHomeDir
 let logEntries = []
 let previousEnv = {}
+let meridianModelMapperPromise
+
+async function loadMeridianModelMapper() {
+  if (meridianModelMapperPromise) return meridianModelMapperPromise
+
+  const distDir = join(process.cwd(), "node_modules", "@rynfar", "meridian", "dist")
+  const mapperFile = readdirSync(distDir).find((entry) => {
+    if (!entry.endsWith(".js")) return false
+    return readFileSync(join(distDir, entry), "utf8").includes(
+      "function mapModelToClaudeModel",
+    )
+  })
+  assert.ok(mapperFile, "expected Meridian dist to expose mapModelToClaudeModel")
+
+  meridianModelMapperPromise = import(
+    pathToFileURL(join(distDir, mapperFile)).href
+  )
+  return meridianModelMapperPromise
+}
 
 function makeClient() {
   return {
@@ -215,6 +237,101 @@ test("chat.headers strips non-ASCII before mode lookup", async () => {
     output,
   )
   assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-agent-name"], "explore")
+})
+
+test("chat.headers reads mode from runtime agent objects", async () => {
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: { name: "runtime-only", mode: "subagent" },
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-agent-name"], "runtime-only")
+})
+
+test("chat.headers prefers runtime agent mode over cached config", async () => {
+  await hooks.config({
+    agent: {
+      explore: { mode: "primary" },
+    },
+  })
+
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: { name: "explore", mode: "subagent" },
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-agent-name"], "explore")
+})
+
+test("chat.headers keeps exact subagent mode without an agent name", async () => {
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: { mode: "subagent" },
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-agent-name"], "unknown")
+})
+
+test("chat.headers subagent mode selects Meridian non-extended tier", async () => {
+  const { mapModelToClaudeModel } = await loadMeridianModelMapper()
+
+  const subagentOutput = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: { name: "explore", mode: "subagent" },
+      model: { providerID: "anthropic" },
+      message: { id: "msg-subagent" },
+    },
+    subagentOutput,
+  )
+
+  const primaryOutput = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      agent: { name: "build", mode: "primary" },
+      model: { providerID: "anthropic" },
+      message: { id: "msg-primary" },
+    },
+    primaryOutput,
+  )
+
+  assert.equal(
+    mapModelToClaudeModel(
+      "claude-opus-4-7",
+      undefined,
+      subagentOutput.headers["x-opencode-agent-mode"],
+    ),
+    "opus",
+  )
+  assert.equal(
+    mapModelToClaudeModel(
+      "claude-opus-4-7",
+      undefined,
+      primaryOutput.headers["x-opencode-agent-mode"],
+    ),
+    "opus[1m]",
+  )
 })
 
 test("chat.headers resolves string agent modes from OpenCode config", async () => {

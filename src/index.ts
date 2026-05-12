@@ -65,14 +65,25 @@ export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
       if (incoming.model.providerID !== "anthropic") return
       delete output.headers["anthropic-beta"]
 
-      const agentKey =
-        String(incoming.agent ?? "unknown").replace(/[^\x20-\x7E]/g, "").trim() ||
+      // OpenCode types this as a string, but at runtime newer versions pass the
+      // full agent object. Use .mode directly so subagents don't look primary.
+      const agent = incoming.agent as unknown as
+        | string
+        | { name?: string; mode?: string }
+      const hasAgentObject = typeof agent === "object" && agent !== null
+      const rawAgentName = hasAgentObject ? agent.name : agent
+      const agentName =
+        String(rawAgentName ?? "unknown").replace(/[^\x20-\x7E]/g, "").trim() ||
         "unknown"
-      const agentMode = agentModes.get(agentKey.toLowerCase()) ?? "primary"
+      const agentMode =
+        hasAgentObject && typeof agent.mode === "string"
+          ? agent.mode
+          : agentModes.get(agentName.toLowerCase()) ?? "primary"
 
       output.headers["x-opencode-session"] = incoming.sessionID
       output.headers["x-opencode-request"] = incoming.message.id
       output.headers["x-opencode-agent-mode"] = agentMode
+      output.headers["x-opencode-agent-name"] = agentName
     },
   }
 }
