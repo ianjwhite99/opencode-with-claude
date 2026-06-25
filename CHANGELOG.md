@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.14](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.13...v1.6.14) (2026-06-25)
+
+
+### Bug Fixes
+
+* bump versions ([#163](https://github.com/ianjwhite99/opencode-with-claude/issues/163)) ([c944d8d](https://github.com/ianjwhite99/opencode-with-claude/commit/c944d8d958ddfe9e6e4ea9c05416297075a38ff6))
+
 ## [1.6.13](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.12...v1.6.13) (2026-06-17)
 
 
