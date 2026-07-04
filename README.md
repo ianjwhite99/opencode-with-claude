@@ -38,7 +38,7 @@ npm install -g opencode-with-claude
 
 ```bash
 npm install -g @anthropic-ai/claude-code
-claude login
+claude auth login 
 ```
 
 **3. Add to your `opencode.json`**
@@ -151,6 +151,8 @@ npm install -g @anthropic-ai/claude-code
 ### "Claude not authenticated"
 
 ```bash
+claude auth login
+# or (depends of your version)
 claude login
 ```
 
