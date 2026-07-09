@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.15](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.14...v1.6.15) (2026-07-09)
+
+
+### Bug Fixes
+
+* stop pinning MERIDIAN_WORKDIR at plugin init ([#167](https://github.com/ianjwhite99/opencode-with-claude/issues/167)) ([a816a64](https://github.com/ianjwhite99/opencode-with-claude/commit/a816a640b355c64bbe53c0a5be6223d149d624d4))
+
 ## [1.6.14](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.13...v1.6.14) (2026-06-25)
 
 
