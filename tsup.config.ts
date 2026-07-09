@@ -4,7 +4,9 @@ import { readFileSync } from "fs"
 export default defineConfig({
   entry: ["src/index.ts"],
   format: ["esm"],
-  dts: true,
+  // TypeScript 7 (native/Go) no longer ships the JS Compiler API that
+  // rollup-plugin-dts (used by tsup --dts) depends on. Emit .d.ts via tsc.
+  dts: false,
   clean: true,
   minify: true,
   esbuildOptions(options) {

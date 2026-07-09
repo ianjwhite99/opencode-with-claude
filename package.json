@@ -6,17 +6,17 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@rynfar/meridian": "^1.44.0",
+    "@rynfar/meridian": "^1.45.0",
     "@rynfar/meridian-plugin-opencode-scrub": "^0.2.0"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "^1.17.11",
-    "@types/node": "^26.0.1",
+    "@opencode-ai/plugin": "^1.17.17",
+    "@types/node": "^26.1.1",
     "tsup": "^8.5.1",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tsc",
     "test": "./test/run.sh",
     "test:unit": "npm run build && node --experimental-strip-types --test test/unit/*.test.mjs",
     "test:clean": "./test/run.sh --clean",
@@ -27,7 +27,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ianjwhite99/opencode-with-claude.git"
+    "url": "git+https://github.com/ianjwhite99/opencode-with-claude.git"
   },
   "keywords": [
     "opencode",
