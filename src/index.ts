@@ -8,17 +8,9 @@ import {
 } from "./meridian-config"
 import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
 
-export const ClaudeMaxPlugin: Plugin = async ({ client, directory }) => {
+export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const log = createLogger(client)
   const agentModes = new Map<string, string>()
-
-  if (
-    directory &&
-    !process.env.MERIDIAN_WORKDIR &&
-    !process.env.CLAUDE_PROXY_WORKDIR
-  ) {
-    process.env.MERIDIAN_WORKDIR = directory
-  }
 
   const meridianConfig = loadMeridianConfig(log)
   const summary = summarizeMeridianConfig(meridianConfig)

@@ -194,8 +194,14 @@ test("plugin does not mutate Meridian sdk-features.json", () => {
   )
 })
 
-test("plugin provides Meridian cwd through process env", () => {
-  assert.equal(process.env.MERIDIAN_WORKDIR, fakeHomeDir)
+test("plugin does not pin MERIDIAN_WORKDIR, leaving per-session cwd resolution to Meridian", () => {
+  // Pinning MERIDIAN_WORKDIR at plugin init takes highest precedence in
+  // Meridian's resolveSdkWorkingDirectory and defeats the per-session
+  // adapterCwd extracted from the client. Long-lived hosts (e.g. the
+  // OpenCode desktop app) serve many projects from one process, so the
+  // plugin must not pin a process-wide working directory.
+  assert.equal(process.env.MERIDIAN_WORKDIR, undefined)
+  assert.equal(process.env.CLAUDE_PROXY_WORKDIR, undefined)
 })
 
 // ---------------------------------------------------------------------------
