@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.16](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.15...v1.6.16) (2026-07-09)
+
+
+### Bug Fixes
+
+* bump Meridian 1.45.0 & update to TypeScript 7 ([#169](https://github.com/ianjwhite99/opencode-with-claude/issues/169)) ([668a007](https://github.com/ianjwhite99/opencode-with-claude/commit/668a007076679f5ff8f20c49f29dc9c0a2e0c493))
+
 ## [1.6.15](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.14...v1.6.15) (2026-07-09)
 
 
