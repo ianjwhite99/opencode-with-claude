@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.17](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.16...v1.6.17) (2026-07-09)
+
+
+### Bug Fixes
+
+* package.json issue ([#171](https://github.com/ianjwhite99/opencode-with-claude/issues/171)) ([5aedc6c](https://github.com/ianjwhite99/opencode-with-claude/commit/5aedc6c3e9457e93acd99785d0addf945cae6b0c))
+
 ## [1.6.16](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.15...v1.6.16) (2026-07-09)
 
 
