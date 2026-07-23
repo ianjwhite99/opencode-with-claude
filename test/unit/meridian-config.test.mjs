@@ -284,6 +284,99 @@ test("API profile round-trips type, apiKey, baseUrl", async () => {
   })
 })
 
+test("oauth-token profile round-trips type and oauthToken", async () => {
+  await withFakeHome(async (meridianDir) => {
+    writeFileSync(
+      join(meridianDir, "profiles.json"),
+      JSON.stringify([
+        {
+          id: "headless",
+          type: "oauth-token",
+          oauthToken: "tok-xxx",
+        },
+      ]),
+    )
+
+    const { loadMeridianConfig } = await importLoader()
+    const cfg = loadMeridianConfig()
+    assert.equal(cfg.profiles.length, 1)
+    assert.deepEqual(cfg.profiles[0], {
+      id: "headless",
+      type: "oauth-token",
+      oauthToken: "tok-xxx",
+    })
+  })
+})
+
+test("MERIDIAN_PROFILES env var round-trips oauth-token profile", async () => {
+  await withFakeHome(async () => {
+    process.env.MERIDIAN_PROFILES = JSON.stringify([
+      {
+        id: "env-oauth",
+        type: "oauth-token",
+        oauthToken: "env-tok",
+      },
+    ])
+
+    const { loadMeridianConfig } = await importLoader()
+    const cfg = loadMeridianConfig()
+    assert.equal(cfg.profiles.length, 1)
+    assert.deepEqual(cfg.profiles[0], {
+      id: "env-oauth",
+      type: "oauth-token",
+      oauthToken: "env-tok",
+    })
+    assert.equal(cfg.sources.profiles, "env")
+  })
+})
+
+test("oauth-token profile without explicit type passes token through but does not infer type", async () => {
+  await withFakeHome(async (meridianDir) => {
+    writeFileSync(
+      join(meridianDir, "profiles.json"),
+      JSON.stringify([
+        {
+          id: "headless",
+          oauthToken: "tok-yyy",
+        },
+      ]),
+    )
+
+    const { loadMeridianConfig } = await importLoader()
+    const cfg = loadMeridianConfig()
+    assert.equal(cfg.profiles.length, 1)
+    assert.deepEqual(cfg.profiles[0], {
+      id: "headless",
+      oauthToken: "tok-yyy",
+    })
+    assert.equal(cfg.profiles[0].type, undefined)
+  })
+})
+
+test("non-string oauthToken is dropped while profile survives", async () => {
+  await withFakeHome(async (meridianDir) => {
+    writeFileSync(
+      join(meridianDir, "profiles.json"),
+      JSON.stringify([
+        {
+          id: "bad-token",
+          type: "oauth-token",
+          oauthToken: 123,
+        },
+      ]),
+    )
+
+    const { loadMeridianConfig } = await importLoader()
+    const cfg = loadMeridianConfig()
+    assert.equal(cfg.profiles.length, 1)
+    assert.deepEqual(cfg.profiles[0], {
+      id: "bad-token",
+      type: "oauth-token",
+    })
+    assert.equal(cfg.profiles[0].oauthToken, undefined)
+  })
+})
+
 test("unknown profile type is stripped but profile is kept", async () => {
   await withFakeHome(async (meridianDir) => {
     writeFileSync(

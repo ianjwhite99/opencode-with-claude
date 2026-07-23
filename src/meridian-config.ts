@@ -22,12 +22,15 @@ import { join } from "path"
 
 import type { LogFn } from "./logger.ts"
 
-export type ProfileType = "claude-max" | "api"
+export type ProfileType = "claude-max" | "api" | "oauth-token"
 
 export interface ProfileConfig {
   /** Unique profile identifier (e.g. "personal", "work") */
   id: string
-  /** Auth type — "claude-max" uses CLAUDE_CONFIG_DIR, "api" uses ANTHROPIC_API_KEY */
+  /**
+   * Auth type — "claude-max" uses CLAUDE_CONFIG_DIR, "api" uses ANTHROPIC_API_KEY,
+   * "oauth-token" uses a long-lived OAuth token from `claude setup-token`.
+   */
   type?: ProfileType
   /** Path to .claude config directory (claude-max profiles) */
   claudeConfigDir?: string
@@ -35,6 +38,8 @@ export interface ProfileConfig {
   apiKey?: string
   /** Anthropic base URL override (api profiles) */
   baseUrl?: string
+  /** Long-lived OAuth token from `claude setup-token` (oauth-token profiles) */
+  oauthToken?: string
 }
 
 export interface MeridianConfigResult {
@@ -79,10 +84,11 @@ function sanitizeProfiles(
       continue
     }
     const p: ProfileConfig = { id: entry.id }
-    if (entry.type === "claude-max" || entry.type === "api") p.type = entry.type
+    if (entry.type === "claude-max" || entry.type === "api" || entry.type === "oauth-token") p.type = entry.type
     if (typeof entry.claudeConfigDir === "string") p.claudeConfigDir = entry.claudeConfigDir
     if (typeof entry.apiKey === "string") p.apiKey = entry.apiKey
     if (typeof entry.baseUrl === "string") p.baseUrl = entry.baseUrl
+    if (typeof entry.oauthToken === "string") p.oauthToken = entry.oauthToken
     out.push(p)
   }
   return out
