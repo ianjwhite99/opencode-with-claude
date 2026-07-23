@@ -74,8 +74,9 @@ without leaving OpenCode.
 
 ### Profiles (`~/.config/meridian/profiles.json`)
 
-Define one or more named profiles (for example, a personal Claude Max account
-and a work account). The plugin forwards them to Meridian at startup.
+Define one or more named profiles (for example, a personal Claude Max account,
+a work account, or an OAuth-token profile). The plugin forwards them to Meridian
+at startup.
 
 ```json
 [
@@ -86,6 +87,11 @@ and a work account). The plugin forwards them to Meridian at startup.
   {
     "id": "work",
     "claudeConfigDir": "/Users/me/.config/meridian/profiles/work"
+  },
+  {
+    "id": "headless",
+    "type": "oauth-token",
+    "oauthToken": "<token from claude setup-token>"
   }
 ]
 ```
