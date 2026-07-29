@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.18...v1.7.0) (2026-07-29)
+
+
+### Features
+
+* support oauth-token Meridian profiles ([#177](https://github.com/ianjwhite99/opencode-with-claude/issues/177)) ([e62fbed](https://github.com/ianjwhite99/opencode-with-claude/commit/e62fbedfea1b9d419c0bfc6d65dd3768b20be488))
+
 ## [1.6.18](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.17...v1.6.18) (2026-07-17)
 
 
