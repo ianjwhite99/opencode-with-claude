@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.7.0...v1.7.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* bump Meridian 1.60.0 ([#180](https://github.com/ianjwhite99/opencode-with-claude/issues/180)) ([b03a3d1](https://github.com/ianjwhite99/opencode-with-claude/commit/b03a3d18801c6a5731581682e3d14bda3713478d))
+
 ## [1.7.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.6.18...v1.7.0) (2026-07-29)
 
 
