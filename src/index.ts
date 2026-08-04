@@ -6,7 +6,12 @@ import {
   loadMeridianConfig,
   summarizeMeridianConfig,
 } from "./meridian-config"
-import { getProxyBaseURL, registerCleanup, startProxy } from "./proxy"
+import {
+  checkProxyHealth,
+  getProxyBaseURL,
+  registerCleanup,
+  startProxy,
+} from "./proxy"
 
 export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   const log = createLogger(client)
@@ -28,6 +33,11 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
   void log("info", `proxy ready at ${baseURL}`)
 
   registerCleanup(proxy)
+
+  // Deliberately not awaited: this only produces log lines, and /health can
+  // take seconds when Meridian's auth cache is cold. Blocking OpenCode's
+  // startup on it would trade real latency for a diagnostic.
+  void checkProxyHealth(proxy.port, log)
 
   return {
     // Set the base URL for the Anthropic provider
