@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.7.1...v1.8.0) (2026-08-04)
+
+
+### Features
+
+* surface Meridian version and login expiry at startup ([#181](https://github.com/ianjwhite99/opencode-with-claude/issues/181)) ([e466c96](https://github.com/ianjwhite99/opencode-with-claude/commit/e466c960f70ae39eb8bab52be78a6017d27528af))
+
 ## [1.7.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.7.0...v1.7.1) (2026-08-04)
 
 
