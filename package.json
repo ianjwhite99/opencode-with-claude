@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@rynfar/meridian": "^1.60.0",
+    "@rynfar/meridian": "^1.61.0",
     "@rynfar/meridian-plugin-opencode-scrub": "^0.2.0"
   },
   "devDependencies": {
