@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.8.0...v1.9.0) (2026-08-21)
+
+
+### Features
+
+* mark human request turns ([#186](https://github.com/ianjwhite99/opencode-with-claude/issues/186)) ([cec6c40](https://github.com/ianjwhite99/opencode-with-claude/commit/cec6c4014be06e851d23d0f247c35c7217cdfc9d))
+
 ## [1.8.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.7.1...v1.8.0) (2026-08-04)
 
 
