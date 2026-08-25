@@ -5,8 +5,8 @@
     "": {
       "name": "opencode-with-claude",
       "dependencies": {
-        "@rynfar/meridian": "^1.62.6",
-        "@rynfar/meridian-plugin-opencode-scrub": "^0.2.0",
+        "@rynfar/meridian": "1.62.6",
+        "@rynfar/meridian-plugin-opencode-scrub": "0.2.0",
       },
       "devDependencies": {
         "@opencode-ai/plugin": "^1.18.3",
