@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.0...v1.9.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* pin Meridian runtime dependencies to exact versions ([#189](https://github.com/ianjwhite99/opencode-with-claude/issues/189)) ([d7300b4](https://github.com/ianjwhite99/opencode-with-claude/commit/d7300b4548e693c8a75bec95cb60f79ac218ae9e))
+
 ## [1.9.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.8.0...v1.9.0) (2026-08-21)
 
 
