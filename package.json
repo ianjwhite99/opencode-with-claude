@@ -7,7 +7,8 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@rynfar/meridian": "1.62.6",
-    "@rynfar/meridian-plugin-opencode-scrub": "0.2.0"
+    "@rynfar/meridian-plugin-opencode-scrub": "0.2.0",
+    "fast-uri": "4.1.2"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "^1.18.3",
@@ -36,5 +37,8 @@
     "claude-max",
     "proxy"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "fast-uri": "4.1.2"
+  }
 }
