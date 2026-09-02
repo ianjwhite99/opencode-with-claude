@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.3...v1.9.4) (2026-09-02)
+
+
+### Bug Fixes
+
+* bump @rynfar/meridian from 1.64.0 to 1.65.0 in the dependencies group ([#197](https://github.com/ianjwhite99/opencode-with-claude/issues/197)) ([a0f5e37](https://github.com/ianjwhite99/opencode-with-claude/commit/a0f5e37feaf2f36dc06c5ce67cc49baa7babad58))
+
 ## [1.9.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.2...v1.9.3) (2026-09-02)
 
 
