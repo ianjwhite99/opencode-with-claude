@@ -30,15 +30,25 @@ The plugin hooks into OpenCode's plugin system. When OpenCode launches, it start
 
 **1. Install the plugin**
 
+With npm:
+
 ```bash
 npm install -g opencode-with-claude
+```
+
+Or with [Homebrew](https://brew.sh) (macOS/Linux), which keeps the plugin
+updated through `brew upgrade` instead of `npm update -g`:
+
+```bash
+brew tap ianjwhite99/opencode-with-claude https://github.com/ianjwhite99/opencode-with-claude
+brew install opencode-with-claude
 ```
 
 **2. Authenticate with Claude (one-time)**
 
 ```bash
-npm install -g @anthropic-ai/claude-code
-claude auth login 
+npm install -g @anthropic-ai/claude-code   # or: brew install --cask claude-code
+claude auth login
 ```
 
 **3. Add to your `opencode.json`**
@@ -60,11 +70,31 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 }
 ```
 
-**3. Run OpenCode**
+If you installed with Homebrew, point the `plugin` entry at the installed
+file instead of the package name (the path is stable across upgrades, and
+`brew info opencode-with-claude` prints it):
+
+```json
+"plugin": ["file:///opt/homebrew/opt/opencode-with-claude/libexec/lib/node_modules/opencode-with-claude/dist/index.js"]
+```
+
+On Linux or Intel macOS replace `/opt/homebrew` with your Homebrew prefix
+(`brew --prefix`, usually `/home/linuxbrew/.linuxbrew` or `/usr/local`).
+
+**4. Run OpenCode**
 
 ```bash
 opencode
 ```
+
+## Updating
+
+- **Homebrew:** `brew upgrade opencode-with-claude`. The formula in
+  [`Formula/`](Formula/opencode-with-claude.rb) is bumped automatically by the
+  release workflow, so `brew update && brew upgrade` tracks new releases.
+- **npm:** `npm update -g opencode-with-claude`. Note that OpenCode caches
+  plugins it installs by package name; if a new version is not picked up,
+  clear `~/.cache/opencode/node_modules/opencode-with-claude` and restart.
 
 ## Profiles and SDK features
 
@@ -203,6 +233,10 @@ opencode-with-claude/
 ├── test/
 │   ├── run.sh             # Test runner
 │   └── opencode.json      # Test config
+├── Formula/
+│   └── opencode-with-claude.rb   # Homebrew formula (tap this repo)
+├── scripts/
+│   └── update-homebrew-formula.sh # Bumps the formula after an npm release
 ├── package.json
 └── tsconfig.json
 ```

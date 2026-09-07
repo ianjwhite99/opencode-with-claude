@@ -42,3 +42,27 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         if: ${{ steps.release.outputs.release_created }}
+
+      # Keep the Homebrew formula in this repo pointing at the release that was
+      # just published, so `brew upgrade` picks it up. Pushes made with the
+      # default GITHUB_TOKEN do not trigger workflows, so this cannot loop.
+      - name: Update Homebrew formula
+        if: ${{ steps.release.outputs.release_created }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          VERSION="$(node -p "require('./package.json').version")"
+          scripts/update-homebrew-formula.sh "$VERSION"
+          git add Formula/opencode-with-claude.rb
+          if git diff --cached --quiet; then
+            echo "Formula already up to date"
+            exit 0
+          fi
+          git commit -m "chore: update Homebrew formula to v$VERSION"
+          for attempt in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            echo "push failed (attempt $attempt), rebasing onto latest main..."
+            git fetch origin main
+            git rebase origin/main
+          done
+          exit 1
