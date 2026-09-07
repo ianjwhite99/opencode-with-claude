@@ -89,9 +89,8 @@ opencode
 ## Updating
 
 - **Homebrew:** `brew upgrade opencode-with-claude`. The release workflow
-  bumps [`Formula/opencode-with-claude.rb`](Formula/opencode-with-claude.rb)
-  and mirrors it to the [`ianjwhite99/homebrew-tap`](https://github.com/ianjwhite99/homebrew-tap)
-  tap, so `brew update && brew upgrade` tracks new releases.
+  bumps the formula in [`ianjwhite99/homebrew-tap`](https://github.com/ianjwhite99/homebrew-tap)
+  after every npm publish, so `brew update && brew upgrade` tracks new releases.
 - **npm:** `npm update -g opencode-with-claude`. Note that OpenCode caches
   plugins it installs by package name; if a new version is not picked up,
   clear `~/.cache/opencode/node_modules/opencode-with-claude` and restart.
@@ -233,10 +232,8 @@ opencode-with-claude/
 ├── test/
 │   ├── run.sh             # Test runner
 │   └── opencode.json      # Test config
-├── Formula/
-│   └── opencode-with-claude.rb   # Homebrew formula (mirrored to ianjwhite99/homebrew-tap)
 ├── scripts/
-│   └── update-homebrew-formula.sh # Bumps the formula after an npm release
+│   └── update-homebrew-formula.sh # Bumps the Homebrew formula (in ianjwhite99/homebrew-tap) after an npm release
 ├── package.json
 └── tsconfig.json
 ```
