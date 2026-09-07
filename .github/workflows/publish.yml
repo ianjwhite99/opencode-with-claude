@@ -85,11 +85,11 @@ jobs:
       TAP_REPO: ianjwhite99/homebrew-tap
       HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
-      # Always read main, so a release run sees the formula bump committed
-      # by the previous job rather than the pre-release checkout.
+      # Check out the branch tip rather than the triggering commit, so a
+      # release run sees the formula bump committed by the previous job.
       - uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Publish formula to Homebrew tap
         run: |
