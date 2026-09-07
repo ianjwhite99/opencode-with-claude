@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.4...v1.9.5) (2026-09-07)
+
+
+### Bug Fixes
+
+* bump @rynfar/meridian to 1.68.0 and sync bun.lock ([#201](https://github.com/ianjwhite99/opencode-with-claude/issues/201)) ([c178dfd](https://github.com/ianjwhite99/opencode-with-claude/commit/c178dfd135978defa46b7a526c7e440df8490925))
+
 ## [1.9.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.3...v1.9.4) (2026-09-02)
 
 
