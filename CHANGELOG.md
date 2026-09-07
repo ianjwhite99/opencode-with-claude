@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.5...v1.10.0) (2026-09-07)
+
+
+### Features
+
+* distribute the plugin with Homebrew ([#203](https://github.com/ianjwhite99/opencode-with-claude/issues/203)) ([508829f](https://github.com/ianjwhite99/opencode-with-claude/commit/508829feec0c29f7c816c1535bc2fd6e54186230))
+
 ## [1.9.5](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.4...v1.9.5) (2026-09-07)
 
 
