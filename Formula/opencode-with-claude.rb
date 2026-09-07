@@ -2,7 +2,8 @@
 #
 # The `url` and `sha256` lines are rewritten automatically by
 # scripts/update-homebrew-formula.sh from the Release workflow after each
-# npm publish. Do not edit them by hand.
+# npm publish, then mirrored to the ianjwhite99/homebrew-tap repository
+# (brew tap ianjwhite99/tap). Do not edit them by hand.
 class OpencodeWithClaude < Formula
   desc "OpenCode plugin to use your Claude Max subscription via Meridian proxy"
   homepage "https://github.com/ianjwhite99/opencode-with-claude"

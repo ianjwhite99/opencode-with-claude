@@ -40,8 +40,7 @@ Or with [Homebrew](https://brew.sh) (macOS/Linux), which keeps the plugin
 updated through `brew upgrade` instead of `npm update -g`:
 
 ```bash
-brew tap ianjwhite99/opencode-with-claude https://github.com/ianjwhite99/opencode-with-claude
-brew install opencode-with-claude
+brew install ianjwhite99/tap/opencode-with-claude
 ```
 
 **2. Authenticate with Claude (one-time)**
@@ -89,9 +88,10 @@ opencode
 
 ## Updating
 
-- **Homebrew:** `brew upgrade opencode-with-claude`. The formula in
-  [`Formula/`](Formula/opencode-with-claude.rb) is bumped automatically by the
-  release workflow, so `brew update && brew upgrade` tracks new releases.
+- **Homebrew:** `brew upgrade opencode-with-claude`. The release workflow
+  bumps [`Formula/opencode-with-claude.rb`](Formula/opencode-with-claude.rb)
+  and mirrors it to the [`ianjwhite99/homebrew-tap`](https://github.com/ianjwhite99/homebrew-tap)
+  tap, so `brew update && brew upgrade` tracks new releases.
 - **npm:** `npm update -g opencode-with-claude`. Note that OpenCode caches
   plugins it installs by package name; if a new version is not picked up,
   clear `~/.cache/opencode/node_modules/opencode-with-claude` and restart.
@@ -234,7 +234,7 @@ opencode-with-claude/
 │   ├── run.sh             # Test runner
 │   └── opencode.json      # Test config
 ├── Formula/
-│   └── opencode-with-claude.rb   # Homebrew formula (tap this repo)
+│   └── opencode-with-claude.rb   # Homebrew formula (mirrored to ianjwhite99/homebrew-tap)
 ├── scripts/
 │   └── update-homebrew-formula.sh # Bumps the formula after an npm release
 ├── package.json
