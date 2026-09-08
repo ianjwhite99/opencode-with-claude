@@ -49,64 +49,36 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         if: ${{ steps.release.outputs.release_created }}
 
-      # Keep Formula/opencode-with-claude.rb pointing at the release that was
-      # just published. Pushes made with the default GITHUB_TOKEN do not
-      # trigger workflows, so this cannot loop.
-      - name: Update Homebrew formula
-        if: ${{ steps.release.outputs.release_created }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          VERSION="$(node -p "require('./package.json').version")"
-          scripts/update-homebrew-formula.sh "$VERSION"
-          git add Formula/opencode-with-claude.rb
-          if git diff --cached --quiet; then
-            echo "Formula already up to date"
-            exit 0
-          fi
-          git commit -m "chore: update Homebrew formula to v$VERSION"
-          for attempt in 1 2 3; do
-            git push origin HEAD:main && exit 0
-            echo "push failed (attempt $attempt), rebasing onto latest main..."
-            git fetch origin main
-            git rebase origin/main
-          done
-          exit 1
-
-  # Mirror the formula into the dedicated tap (brew tap ianjwhite99/tap).
-  # Needs a HOMEBREW_TAP_TOKEN secret: a fine-grained PAT with "Contents:
-  # read and write" on ianjwhite99/homebrew-tap. Skips with a warning if unset.
+  # Bump the formula in the dedicated tap (brew tap ianjwhite99/tap) to the
+  # version that was just published. Needs a HOMEBREW_TAP_TOKEN secret: a
+  # fine-grained PAT with "Contents: read and write" on
+  # ianjwhite99/homebrew-tap. Skips with a warning if unset.
   homebrew-tap:
     needs: release-please
     if: ${{ !cancelled() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     env:
       TAP_REPO: ianjwhite99/homebrew-tap
       HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
-      # Check out the branch tip rather than the triggering commit, so a
-      # release run sees the formula bump committed by the previous job.
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.ref_name }}
 
-      - name: Publish formula to Homebrew tap
+      - name: Update formula in Homebrew tap
         run: |
           if [ -z "$HOMEBREW_TAP_TOKEN" ]; then
-            echo "::warning::HOMEBREW_TAP_TOKEN is not set; skipping Homebrew tap sync"
+            echo "::warning::HOMEBREW_TAP_TOKEN is not set; skipping Homebrew tap update"
             exit 0
           fi
           VERSION="$(node -p "require('./package.json').version")"
           git clone --depth 1 "https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/${TAP_REPO}.git" tap
-          mkdir -p tap/Formula
-          cp Formula/opencode-with-claude.rb tap/Formula/opencode-with-claude.rb
+          scripts/update-homebrew-formula.sh tap/Formula/opencode-with-claude.rb "$VERSION"
           cd tap
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Formula/opencode-with-claude.rb
           if git diff --cached --quiet; then
-            echo "Tap already up to date"
+            echo "Tap already at v$VERSION"
             exit 0
           fi
           git commit -m "opencode-with-claude: update to v$VERSION"

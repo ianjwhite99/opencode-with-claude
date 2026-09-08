@@ -1,22 +1,35 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Point Formula/opencode-with-claude.rb at a published npm release.
+# Point a Homebrew formula at a published npm release of opencode-with-claude.
 #
 # Downloads the tarball for the given version from the npm registry, computes
-# its sha256, and rewrites the formula's `url` and `sha256` lines. Run by the
-# Release workflow after `npm publish`; safe to run by hand as well.
+# its sha256, and rewrites the formula's `url` and `sha256` lines. The formula
+# lives in the ianjwhite99/homebrew-tap repository; the Release workflow runs
+# this against a clone of that tap after every `npm publish`. Safe to run by
+# hand as well.
 #
 # Usage:
-#   scripts/update-homebrew-formula.sh [version]   # defaults to package.json
+#   scripts/update-homebrew-formula.sh <path/to/opencode-with-claude.rb> [version]
+#
+# `version` defaults to the version in this repo's package.json.
 # =============================================================================
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-FORMULA="$REPO_ROOT/Formula/opencode-with-claude.rb"
 PACKAGE="opencode-with-claude"
 
-VERSION="${1:-$(node -p "require('$REPO_ROOT/package.json').version")}"
+FORMULA="${1:-}"
+if [[ -z "$FORMULA" ]]; then
+  echo "usage: $0 <path/to/$PACKAGE.rb> [version]" >&2
+  exit 64
+fi
+if [[ ! -f "$FORMULA" ]]; then
+  echo "error: formula not found: $FORMULA" >&2
+  exit 1
+fi
+
+VERSION="${2:-$(node -p "require('$REPO_ROOT/package.json').version")}"
 VERSION="${VERSION#v}"
 URL="https://registry.npmjs.org/$PACKAGE/-/$PACKAGE-$VERSION.tgz"
 
