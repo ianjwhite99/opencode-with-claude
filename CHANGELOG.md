@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.0...v1.10.1) (2026-09-08)
+
+
+### Bug Fixes
+
+* update the Homebrew formula in the tap instead of pushing to main ([#205](https://github.com/ianjwhite99/opencode-with-claude/issues/205)) ([869be73](https://github.com/ianjwhite99/opencode-with-claude/commit/869be7335ba86cb83866a726e596940327aebc48))
+
 ## [1.10.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.9.5...v1.10.0) (2026-09-07)
 
 
