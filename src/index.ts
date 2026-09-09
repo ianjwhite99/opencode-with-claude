@@ -98,14 +98,26 @@ export const ClaudeMaxPlugin: Plugin = async ({ client }) => {
           ? agent.mode
           : agentModes.get(agentName.toLowerCase()) ?? "primary"
 
-      output.headers["x-opencode-session"] = incoming.sessionID
+      // OpenCode's title generator runs on the *same* session id as the user's
+      // first prompt, concurrently. Meridian serialises requests per session
+      // (a turn lease) and rejects whichever one waited with "This session
+      // advanced while the request was waiting" — about half the time that is
+      // the user's prompt, so the first message of a fresh session fails.
+      // Detach the title request: no session header means no lease, and the
+      // subagent mode marks it as an independent flow.
+      const isTitleRequest = agentName.toLowerCase() === "title"
+      if (!isTitleRequest) {
+        output.headers["x-opencode-session"] = incoming.sessionID
+      }
       output.headers["x-opencode-request"] = incoming.message.id
       output.headers["x-opencode-request-kind"] = humanMessages.has(
         messageKey(incoming.sessionID, incoming.message.id),
       )
         ? "human"
         : "synthetic"
-      output.headers["x-opencode-agent-mode"] = agentMode
+      output.headers["x-opencode-agent-mode"] = isTitleRequest
+        ? "subagent"
+        : agentMode
       output.headers["x-opencode-agent-name"] = agentName
     },
   }

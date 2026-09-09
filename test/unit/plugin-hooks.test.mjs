@@ -341,6 +341,29 @@ test("chat.headers strips non-ASCII before mode lookup", async () => {
   assert.equal(output.headers["x-opencode-agent-name"], "explore")
 })
 
+test("chat.headers detaches title-agent requests from the session lease", async () => {
+  // OpenCode titles a fresh session on the same session id, concurrently with
+  // the user's first prompt; Meridian's per-session turn lease then rejects
+  // whichever request waited. Title requests must carry no session header
+  // and declare subagent mode so Meridian treats them as independent.
+  for (const agent of ["title", { name: "title", mode: "primary" }]) {
+    const output = { headers: {} }
+    await hooks["chat.headers"](
+      {
+        sessionID: "sess-123",
+        model: { providerID: "anthropic" },
+        message: { id: "msg-title" },
+        agent,
+      },
+      output,
+    )
+    assert.equal(output.headers["x-opencode-session"], undefined)
+    assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+    assert.equal(output.headers["x-opencode-agent-name"], "title")
+    assert.equal(output.headers["x-opencode-request"], "msg-title")
+  }
+})
+
 test("chat.headers reads mode from runtime agent objects", async () => {
   const output = { headers: {} }
   await hooks["chat.headers"](
