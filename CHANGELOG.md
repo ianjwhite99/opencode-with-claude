@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.2...v1.10.3) (2026-09-17)
+
+
+### Bug Fixes
+
+* detach title-agent requests from the Meridian session lease ([#212](https://github.com/ianjwhite99/opencode-with-claude/issues/212)) ([81876d9](https://github.com/ianjwhite99/opencode-with-claude/commit/81876d955cbf48505949ad2f589b2e398f4a179e))
+
 ## [1.10.2](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.1...v1.10.2) (2026-09-16)
 
 
