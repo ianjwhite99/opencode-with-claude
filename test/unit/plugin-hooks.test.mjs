@@ -73,10 +73,10 @@ before(async () => {
   // Use a random OS-assigned port so multiple runs don't collide.
   process.env.CLAUDE_PROXY_PORT = "0"
 
-  const { ClaudeMaxPlugin } = await import(
+  const { default: plugin } = await import(
     `../../dist/index.js?t=${Date.now()}${Math.random()}`
   )
-  hooks = await ClaudeMaxPlugin({
+  hooks = await plugin.server({
     client: makeClient(),
     directory: fakeHomeDir,
     worktree: fakeHomeDir,
@@ -84,7 +84,7 @@ before(async () => {
 })
 
 after(async () => {
-  // ClaudeMaxPlugin starts the proxy internally but doesn't return its
+  // plugin.server() starts the proxy internally but doesn't return its
   // handle, so we trigger its registerCleanup() hook by emitting SIGINT
   // and waiting a short tick for the async close() to drain the event loop.
   // Without this, the open server keeps node:test from exiting.
@@ -341,6 +341,86 @@ test("chat.headers strips non-ASCII before mode lookup", async () => {
   assert.equal(output.headers["x-opencode-agent-name"], "explore")
 })
 
+test("chat.headers detaches title and summary requests from the session lease", async () => {
+  // OpenCode titles a fresh session on the same session id, concurrently with
+  // the user's first prompt; Meridian's per-session turn lease then rejects
+  // whichever request waited. Title requests must carry no session header
+  // and declare subagent mode so Meridian treats them as independent.
+  for (const agent of ["title", { name: "title", mode: "primary" }, "summary"]) {
+    // A session header already present (provider config, an earlier hook)
+    // must be removed, not merely left unset.
+    const output = {
+      headers: {
+        "X-OpenCode-Session": "stale",
+        "x-session-affinity": "stale",
+      },
+    }
+    await hooks["chat.headers"](
+      {
+        sessionID: "sess-123",
+        model: { providerID: "anthropic" },
+        message: { id: "msg-title" },
+        agent,
+      },
+      output,
+    )
+    const name = typeof agent === "string" ? agent : agent.name
+    assert.equal(output.headers["x-opencode-session"], undefined)
+    assert.equal(output.headers["X-OpenCode-Session"], undefined)
+    assert.equal(output.headers["x-session-affinity"], undefined)
+    assert.equal(output.headers["x-meridian-source"], `subagent-${name}`)
+    assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+    assert.equal(output.headers["x-opencode-agent-name"], name)
+    assert.equal(output.headers["x-opencode-request"], "msg-title")
+  }
+})
+
+test("chat.headers replaces a stale session header on attached requests", async () => {
+  const output = { headers: { "X-Opencode-Session": "stale", "x-session-id": "stale" } }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+      agent: "build",
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-session"], "sess-123")
+  assert.equal(output.headers["X-Opencode-Session"], undefined)
+  assert.equal(output.headers["x-session-id"], undefined)
+  assert.equal(output.headers["x-meridian-source"], undefined)
+})
+
+test("chat.headers knows OpenCode's built-in subagents without config", async () => {
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+      agent: "explore",
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "subagent")
+  assert.equal(output.headers["x-opencode-session"], "sess-123")
+})
+
+test("chat.headers maps agent mode 'all' to primary for Meridian", async () => {
+  const output = { headers: {} }
+  await hooks["chat.headers"](
+    {
+      sessionID: "sess-123",
+      model: { providerID: "anthropic" },
+      message: { id: "msg-abc" },
+      agent: { name: "helper", mode: "all" },
+    },
+    output,
+  )
+  assert.equal(output.headers["x-opencode-agent-mode"], "primary")
+})
+
 test("chat.headers reads mode from runtime agent objects", async () => {
   const output = { headers: {} }
   await hooks["chat.headers"](
@@ -489,7 +569,7 @@ test("chat.headers is a no-op for non-anthropic providers", async () => {
 // ---------------------------------------------------------------------------
 
 test("plugin logs 'proxy ready' during startup", () => {
-  // The before-hook already invoked ClaudeMaxPlugin. One of the startup log
+  // The before-hook already invoked plugin.server(). One of the startup log
   // entries should announce the proxy URL.
   assert.ok(
     logEntries.some(

@@ -9,7 +9,7 @@ const WARN_PATTERNS =
   /rate.limit|429|overloaded|503|stale.session|timeout|timed out/i
 
 /**
- * Create a logger bound to the plugin's client.
+ * Create a logger bound to the plugin's client (OpenCode v1).
  */
 export function createLogger(
   client: Parameters<Plugin>[0]["client"]
@@ -18,6 +18,19 @@ export function createLogger(
     client.app.log({
       body: { service: "opencode-with-claude", level, message },
     })
+}
+
+/**
+ * Create a logger for hosts without a log API (OpenCode v2 gives plugins no
+ * `client.app.log`). Lines go to stderr, which OpenCode v2 captures into its
+ * own log stream; debug lines are dropped so the proxy's per-request chatter
+ * does not flood it.
+ */
+export function createConsoleLogger(): LogFn {
+  return async (level, message) => {
+    if (level === "debug") return
+    console.error(`[opencode-with-claude] ${level}: ${message}`)
+  }
 }
 
 /**

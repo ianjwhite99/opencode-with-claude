@@ -8,11 +8,13 @@ Use [OpenCode](https://opencode.ai) with your [Claude Max](https://claude.ai) su
 
 An [OpenCode](https://opencode.ai) plugin that runs [Meridian](https://github.com/rynfar/meridian) *(formerly opencode-claude-max-proxy)* for you: **start OpenCode once** and the proxy comes up with it; **quit OpenCode** and the proxy stops. No separate proxy CLI or Docker container to manage.
 
+Works with both OpenCode generations: the 1.x line (`opencode`) and OpenCode 2 (`@opencode/cli`), from the same package.
+
 **Compared to running the proxy yourself:**
 
 - **One process to think about** — OpenCode owns the proxy lifecycle (start/stop) instead of you juggling two things.
 - **Several OpenCode windows at once** — each instance gets its own proxy on an OS-assigned port, so ports do not collide and you avoid session issues from sharing one proxy across instances.
-- **Explicit session headers** — the plugin adds session tracking on outgoing API calls, so the proxy does not have to infer sessions from fingerprints alone.
+- **Explicit session headers** — the plugin adds session tracking on outgoing API calls, so the proxy does not have to infer sessions from fingerprints alone. OpenCode's hidden title and summary requests are kept off the session's turn lease, so the first message of a fresh session does not race them.
 
 ## How It Works
 
@@ -52,7 +54,11 @@ claude auth login
 
 **3. Add to your `opencode.json`**
 
-Global (`~/.config/opencode/opencode.json`) or project-level:
+Global (`~/.config/opencode/opencode.json`) or project-level. The keys differ
+between OpenCode generations; a block written for the other generation is
+silently ignored, so make sure you use the right one.
+
+OpenCode 1.x:
 
 ```json
 {
@@ -69,7 +75,29 @@ Global (`~/.config/opencode/opencode.json`) or project-level:
 }
 ```
 
-If you installed with Homebrew, point the `plugin` entry at the installed
+OpenCode 2 (`plugins` and `providers.<id>.settings` instead of `plugin` and
+`provider.<id>.options`):
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": ["opencode-with-claude"],
+  "providers": {
+    "anthropic": {
+      "settings": {
+        "baseURL": "http://127.0.0.1:3456/v1",
+        "apiKey": "dummy"
+      }
+    }
+  }
+}
+```
+
+In both cases the `baseURL` is only a placeholder: the plugin rewrites every
+Anthropic request to whatever port its own proxy actually got, so several
+OpenCode instances can run side by side.
+
+If you installed with Homebrew, point the plugin entry at the installed
 file instead of the package name (the path is stable across upgrades, and
 `brew info opencode-with-claude` prints it):
 
@@ -77,8 +105,9 @@ file instead of the package name (the path is stable across upgrades, and
 "plugin": ["file:///opt/homebrew/opt/opencode-with-claude/libexec/lib/node_modules/opencode-with-claude/dist/index.js"]
 ```
 
-On Linux or Intel macOS replace `/opt/homebrew` with your Homebrew prefix
-(`brew --prefix`, usually `/home/linuxbrew/.linuxbrew` or `/usr/local`).
+(`"plugins": [...]` on OpenCode 2.) On Linux or Intel macOS replace
+`/opt/homebrew` with your Homebrew prefix (`brew --prefix`, usually
+`/home/linuxbrew/.linuxbrew` or `/usr/local`).
 
 **4. Run OpenCode**
 
@@ -226,12 +255,15 @@ firewall rules or other access controls if you open it up.
 ```
 opencode-with-claude/
 ├── src/
-│   ├── index.ts           # Plugin entry point
+│   ├── index.ts           # Plugin entry point: v1 server() + v2 setup()
+│   ├── headers.ts         # Meridian request-identity headers (shared)
 │   ├── proxy.ts           # Proxy lifecycle management
-│   └── logger.ts          # Plugin logger
+│   ├── meridian-config.ts # Reads Meridian's profiles/settings files
+│   └── logger.ts          # Plugin loggers
 ├── test/
-│   ├── run.sh             # Test runner
-│   └── opencode.json      # Test config
+│   ├── run.sh             # Launches OpenCode 1.x with the built plugin
+│   ├── opencode.json      # Test config
+│   └── unit/              # node:test suites (npm run test:unit)
 ├── scripts/
 │   └── update-homebrew-formula.sh # Bumps the Homebrew formula (in ianjwhite99/homebrew-tap) after an npm release
 ├── package.json
@@ -248,9 +280,23 @@ npm run build
 ### Test locally
 
 ```bash
-./test/run.sh              # Build and launch OpenCode with the plugin
+npm run test:unit          # Build, then run the unit suites (v1 hooks and v2 setup)
+./test/run.sh              # Build and launch OpenCode 1.x with the plugin
 ./test/run.sh --clean      # Remove build artifacts
 ```
+
+To try the build in OpenCode 2, point a `plugins` entry at the `dist`
+directory, for example `"plugins": ["/path/to/opencode-with-claude/dist"]`.
+
+### How the two OpenCode generations are served
+
+`dist/index.js` has a single default export with `id`, `server()` and
+`setup()`. OpenCode 1.x calls `server()` and uses the returned hooks
+(`config`, `chat.headers`, ...). OpenCode 2 calls `setup(ctx)` and the plugin
+registers `session.hook("model.request")` (base URL and Meridian headers) and
+the system-prompt hooks on the context. The module deliberately has no other
+exports: OpenCode 1.17 and 1.18 load every export as a plugin, so a second one
+would start a second proxy.
 
 ## FAQ
 
@@ -261,6 +307,13 @@ No. Claude Max is not authenticated with API keys here. Run `claude login` once;
 **What if my Claude Max subscription lapses?**
 
 The proxy will fail to authenticate. Run `claude auth status`. You need an active Claude Max plan; see [claude.ai](https://claude.ai) for current options and pricing.
+
+**Does this work with OpenCode 2?**
+
+Yes. The same package loads on OpenCode 1.x and OpenCode 2; only the
+`opencode.json` keys differ (see Quick Start). OpenCode 2 gives plugins no log
+API, so on that generation the plugin's startup and health messages go to the
+server's stderr instead of the OpenCode log (visible with `--print-logs`).
 
 **Can I run several OpenCode instances at once?**
 
