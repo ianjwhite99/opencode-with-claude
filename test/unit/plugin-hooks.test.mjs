@@ -21,6 +21,8 @@ let fakeHomeDir
 let logEntries = []
 let previousEnv = {}
 let meridianModelMapperPromise
+let plugin
+let secondHooks
 
 async function loadMeridianModelMapper() {
   if (meridianModelMapperPromise) return meridianModelMapperPromise
@@ -73,14 +75,35 @@ before(async () => {
   // Use a random OS-assigned port so multiple runs don't collide.
   process.env.CLAUDE_PROXY_PORT = "0"
 
-  const { default: plugin } = await import(
+  ;({ default: plugin } = await import(
     `../../dist/index.js?t=${Date.now()}${Math.random()}`
-  )
-  hooks = await plugin.server({
-    client: makeClient(),
-    directory: fakeHomeDir,
-    worktree: fakeHomeDir,
-  })
+  ))
+  ;[hooks, secondHooks] = await Promise.all([
+    plugin.server({ client: makeClient(), directory: fakeHomeDir, worktree: fakeHomeDir }),
+    plugin.server({ client: makeClient(), directory: `${fakeHomeDir}/second`, worktree: fakeHomeDir }),
+  ])
+})
+
+test("v1 project instances share the in-flight and already running proxy", async () => {
+  const thirdHooks = await plugin.server({ client: makeClient() })
+  const urls = []
+  for (const instance of [hooks, secondHooks, thirdHooks]) {
+    const config = { provider: { anthropic: {} } }
+    await instance.config(config)
+    urls.push(config.provider.anthropic.options.baseURL)
+  }
+  assert.equal(new Set(urls).size, 1)
+  assert.equal(logEntries.filter((entry) => entry.message.startsWith("proxy ready at http://")).length, 1)
+
+  await hooks.config({ agent: { custom: { mode: "subagent" } } })
+  const output = { headers: {} }
+  await secondHooks["chat.headers"]({
+    sessionID: "separate-project",
+    agent: "custom",
+    model: { providerID: "anthropic" },
+    message: { id: "msg" },
+  }, output)
+  assert.equal(output.headers["x-opencode-agent-mode"], "primary", "agent config stays local to each plugin instance")
 })
 
 after(async () => {

@@ -14,6 +14,19 @@ let ctx
 let cleanup
 let stderrLines = []
 let previousConsoleError
+let plugin
+let secondContext
+let secondCleanup
+let cleanupListenerCounts
+
+const listenerCounts = () => ["exit", "SIGINT", "SIGTERM"].map((event) =>
+  process.listenerCount(event),
+)
+
+async function proxyURL(context) {
+  const input = await context.emit("model.request", modelRequest())
+  return input.baseURL.replace(/\/v1$/, "")
+}
 
 function makeContext() {
   const hooks = { session: new Map(), agentTransforms: [] }
@@ -82,20 +95,53 @@ before(async () => {
     stderrLines.push(args.map(String).join(" "))
   }
 
-  const { default: plugin } = await import(
+  ;({ default: plugin } = await import(
     `${pathToFileURL(join(process.cwd(), "dist", "index.js")).href}?v2=${Date.now()}`
-  )
+  ))
+  cleanupListenerCounts = listenerCounts()
   ctx = makeContext()
-  cleanup = await plugin.setup(ctx)
+  secondContext = makeContext()
+  ;[cleanup, secondCleanup] = await Promise.all([
+    plugin.setup(ctx),
+    plugin.setup(secondContext),
+  ])
 })
 
 after(async () => {
+  await cleanup?.()
+  await secondCleanup?.()
   console.error = previousConsoleError
   for (const [key, value] of Object.entries(previousEnv)) {
     if (value === undefined) delete process.env[key]
     else process.env[key] = value
   }
   rmSync(fakeHomeDir, { recursive: true, force: true })
+})
+
+test("concurrent and repeated setup share one proxy and one set of cleanup listeners", async () => {
+  assert.equal(await proxyURL(ctx), await proxyURL(secondContext))
+  assert.equal(stderrLines.filter((line) => line.includes("proxy ready at http://")).length, 1)
+  assert.deepEqual(listenerCounts(), cleanupListenerCounts.map((n, i) =>
+    n + (i === 2 && process.platform === "win32" ? 0 : 1),
+  ))
+
+  const third = makeContext()
+  const dispose = await plugin.setup(third)
+  try {
+    assert.equal(await proxyURL(third), await proxyURL(ctx))
+  } finally {
+    await dispose()
+    await dispose()
+  }
+})
+
+test("failed hook registration releases only its own shared runtime reference", async () => {
+  const failing = makeContext()
+  failing.session.hook = async () => { throw new Error("registration failed") }
+  await assert.rejects(plugin.setup(failing), /registration failed/)
+  assert.deepEqual(failing.disposed, ["agent.transform"])
+  const response = await fetch(`${await proxyURL(ctx)}/health`)
+  assert.equal(response.ok, true)
 })
 
 test("setup registers anthropic-scoped session hooks and an agent transform", () => {
@@ -272,6 +318,11 @@ test("cleanup disposes every registration and stops the proxy", async () => {
   assert.equal(before.ok, true, "proxy should answer /health while the plugin is loaded")
 
   await cleanup()
+  await cleanup()
+
+  const stillRunning = await fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(5_000) })
+  assert.equal(stillRunning.ok, true, "another plugin instance still owns the proxy")
+  await secondCleanup()
 
   assert.deepEqual(
     [...ctx.disposed].sort(),
@@ -288,4 +339,48 @@ test("cleanup disposes every registration and stops the proxy", async () => {
     fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(2_000) }),
     "proxy should be closed after cleanup",
   )
+  assert.deepEqual(listenerCounts(), cleanupListenerCounts)
+})
+
+test("setup can restart after final disposal, including while close is in flight", async () => {
+  const first = makeContext()
+  const disposeFirst = await plugin.setup(first)
+  const closing = disposeFirst()
+  const next = makeContext()
+  const nextSetup = plugin.setup(next)
+  await closing
+  const disposeNext = await nextSetup
+  try {
+    const response = await fetch(`${await proxyURL(next)}/health`)
+    assert.equal(response.ok, true)
+  } finally {
+    await disposeNext()
+  }
+  assert.deepEqual(listenerCounts(), cleanupListenerCounts)
+})
+
+test("a failed startup is not cached and the next setup can retry", async () => {
+  process.env.CLAUDE_PROXY_PORT = "-1"
+  try {
+    const attempts = await Promise.allSettled([
+      plugin.setup(makeContext()),
+      plugin.setup(makeContext()),
+    ])
+    for (const attempt of attempts) {
+      assert.equal(attempt.status, "rejected")
+      assert.equal(attempt.reason.code, "ERR_SOCKET_BAD_PORT")
+    }
+  } finally {
+    process.env.CLAUDE_PROXY_PORT = "0"
+  }
+
+  const recovered = makeContext()
+  const dispose = await plugin.setup(recovered)
+  try {
+    const response = await fetch(`${await proxyURL(recovered)}/health`)
+    assert.equal(response.ok, true)
+  } finally {
+    await dispose()
+  }
+  assert.deepEqual(listenerCounts(), cleanupListenerCounts)
 })

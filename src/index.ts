@@ -37,6 +37,47 @@ interface Runtime {
   baseURL: string
 }
 
+interface SharedRuntime {
+  ready: Promise<Runtime>
+  users: number
+  closing?: Promise<void>
+}
+
+// OpenCode initializes plugins per project. Cache the in-flight startup too,
+// so simultaneous project loads cannot race to bind the same port.
+let sharedRuntime: SharedRuntime | undefined
+
+async function acquireRuntime(log: LogFn) {
+  while (sharedRuntime?.closing) await sharedRuntime.closing
+  const shared = sharedRuntime ??= {
+    ready: startRuntime(log),
+    users: 0,
+  }
+  shared.users++
+
+  let runtime: Runtime
+  try {
+    runtime = await shared.ready
+  } catch (error) {
+    if (sharedRuntime === shared) sharedRuntime = undefined
+    throw error
+  }
+
+  let released = false
+  return {
+    baseURL: runtime.baseURL,
+    release: async () => {
+      if (released) return
+      released = true
+      if (--shared.users > 0) return
+      shared.closing = runtime.proxy.close().finally(() => {
+        if (sharedRuntime === shared) sharedRuntime = undefined
+      })
+      await shared.closing
+    },
+  }
+}
+
 async function startRuntime(log: LogFn): Promise<Runtime> {
   const meridianConfig = loadMeridianConfig(log)
   const summary = summarizeMeridianConfig(meridianConfig)
@@ -53,7 +94,13 @@ async function startRuntime(log: LogFn): Promise<Runtime> {
   const baseURL = getProxyBaseURL(proxy.port)
   void log("info", `proxy ready at ${baseURL}`)
 
-  registerCleanup(proxy)
+  const unregisterCleanup = registerCleanup(proxy)
+  const close = proxy.close
+  let closing: Promise<void> | undefined
+  proxy.close = () => {
+    unregisterCleanup()
+    return closing ??= close()
+  }
 
   // Deliberately not awaited: this only produces log lines, and /health can
   // take seconds when Meridian's auth cache is cold. Blocking OpenCode's
@@ -86,7 +133,8 @@ const server: Plugin = async ({ client }) => {
   const messageKey = (sessionID: string, messageID: string) =>
     `${sessionID}\u0000${messageID}`
 
-  const { baseURL } = await startRuntime(log)
+  // v1 has no disposal hook, so its reference lives until process cleanup.
+  const { baseURL } = await acquireRuntime(log)
 
   return {
     // Set the base URL for the Anthropic provider
@@ -195,7 +243,7 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
   const agentModes = new Map<string, string>()
   const registrations: Registration[] = []
 
-  const { proxy, baseURL } = await startRuntime(log)
+  const { release, baseURL } = await acquireRuntime(log)
   // The Anthropic SDK resolves `/messages` (and `/models`) against this, so
   // it needs the version segment that v1 provider config used to carry.
   const anthropicBaseURL = `${baseURL}/v1`
@@ -204,7 +252,7 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
     const results = await Promise.allSettled(
       registrations.splice(0).map((registration) => registration.dispose()),
     )
-    await proxy.close()
+    await release()
     const failures = results.flatMap((result) =>
       result.status === "rejected" ? [result.reason] : [],
     )
