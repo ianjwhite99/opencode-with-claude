@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.3...v1.10.4) (2026-09-24)
+
+
+### Bug Fixes
+
+* share proxy runtime and update Meridian for Windows GC ([#218](https://github.com/ianjwhite99/opencode-with-claude/issues/218)) ([445c961](https://github.com/ianjwhite99/opencode-with-claude/commit/445c9612a6ba98cc6a6ff8521476c580dc594c74))
+
 ## [1.10.3](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.2...v1.10.3) (2026-09-17)
 
 
