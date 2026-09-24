@@ -311,7 +311,7 @@ export async function checkProxyHealth(
 // Process cleanup
 // ---------------------------------------------------------------------------
 
-export function registerCleanup(proxy: ProxyHandle): void {
+export function registerCleanup(proxy: ProxyHandle): () => void {
   let cleaned = false
 
   const cleanup = () => {
@@ -325,5 +325,11 @@ export function registerCleanup(proxy: ProxyHandle): void {
 
   if (!IS_WINDOWS) {
     process.on("SIGTERM", cleanup)
+  }
+
+  return () => {
+    process.removeListener("exit", cleanup)
+    process.removeListener("SIGINT", cleanup)
+    if (!IS_WINDOWS) process.removeListener("SIGTERM", cleanup)
   }
 }

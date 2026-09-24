@@ -13,7 +13,7 @@ Works with both OpenCode generations: the 1.x line (`opencode`) and OpenCode 2 (
 **Compared to running the proxy yourself:**
 
 - **One process to think about** — OpenCode owns the proxy lifecycle (start/stop) instead of you juggling two things.
-- **Several OpenCode windows at once** — each instance gets its own proxy on an OS-assigned port, so ports do not collide and you avoid session issues from sharing one proxy across instances.
+- **Several OpenCode windows at once** — each process gets its own proxy (port 3456 when available, otherwise an OS-assigned port). Project instances within the same process share that proxy, including concurrent plugin initialization.
 - **Explicit session headers** — the plugin adds session tracking on outgoing API calls, so the proxy does not have to infer sessions from fingerprints alone. OpenCode's hidden title and summary requests are kept off the session's turn lease, so the first message of a fresh session does not race them.
 
 ## How It Works
