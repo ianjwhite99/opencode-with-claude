@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.11.0](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.4...v1.11.0) (2026-09-30)
+
+
+### Features
+
+* run an external Meridian build via MERIDIAN_PATH ([#224](https://github.com/ianjwhite99/opencode-with-claude/issues/224)) ([9b1cbf2](https://github.com/ianjwhite99/opencode-with-claude/commit/9b1cbf2fad721d204b1524d10a2d7ced1b84a67a))
+
+
+### Bug Fixes
+
+* **deps:** bump @rynfar/meridian to 1.79.0 ([#223](https://github.com/ianjwhite99/opencode-with-claude/issues/223)) ([ee21238](https://github.com/ianjwhite99/opencode-with-claude/commit/ee2123815586504e20f4a5b1f0ea77c6ad477478))
+* give Meridian's cold /health enough time to answer ([#226](https://github.com/ianjwhite99/opencode-with-claude/issues/226)) ([bd21ca3](https://github.com/ianjwhite99/opencode-with-claude/commit/bd21ca3b2bc748a0833d004c0e0d03de8ef3b022))
+* strip the anthropic-beta header OpenCode 2 re-adds ([#225](https://github.com/ianjwhite99/opencode-with-claude/issues/225)) ([386cd61](https://github.com/ianjwhite99/opencode-with-claude/commit/386cd61364f9dfc3b685a86ddb8cf763bf00dac9))
+
 ## [1.10.4](https://github.com/ianjwhite99/opencode-with-claude/compare/v1.10.3...v1.10.4) (2026-09-24)
 
 

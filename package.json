@@ -1,12 +1,12 @@
 {
   "name": "opencode-with-claude",
   "description": "OpenCode plugin to use your Claude Max subscription via Meridian proxy",
-  "version": "1.10.4",
+  "version": "1.11.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@rynfar/meridian": "1.79.0",
+    "@rynfar/meridian": "1.76.5",
     "@rynfar/meridian-plugin-opencode-scrub": "0.2.0"
   },
   "devDependencies": {
