@@ -7,11 +7,6 @@ import {
   type StartProxyServer,
 } from "./meridian-source.ts"
 
-// Enable passthrough mode so the proxy returns tool_use blocks to OpenCode
-// for execution, rather than running them internally. Without this, tool
-// calls are filtered from the response stream and never shown in the TUI.
-process.env.MERIDIAN_PASSTHROUGH ??= "true"
-
 const IS_WINDOWS = process.platform === "win32"
 
 // ---------------------------------------------------------------------------
@@ -45,9 +40,7 @@ export function getProxyHost(): string {
     process.env.CLAUDE_PROXY_HOST?.trim() ||
     DEFAULT_HOST
 
-  return host.startsWith("[") && host.endsWith("]")
-    ? host.slice(1, -1)
-    : host
+  return host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host
 }
 
 export function getProxyConnectHost(host = getProxyHost()): string {
@@ -65,7 +58,12 @@ export function getProxyBaseURL(
   return `http://${formatHostForUrl(getProxyConnectHost(host))}:${port}`
 }
 
-export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> {
+export async function startProxy(
+  opts: StartProxyOptions
+): Promise<ProxyHandle> {
+  // Embedded mode executes tools in OpenCode. An external service configures
+  // passthrough itself and must not change its environment on module import.
+  process.env.MERIDIAN_PASSTHROUGH ??= "true"
   const { port = DEFAULT_PORT, log, profiles, defaultProfile } = opts
   const host = getProxyHost()
   const meridian = await loadMeridian(log)
@@ -86,38 +84,36 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
   }
 
   const tryStart = (p: number) =>
-    new Promise<Awaited<ReturnType<StartProxyServer>>>(
-      (resolve, reject) => {
-        startProxyServer({
-          port: p,
-          host,
-          silent: true,
-          profiles,
-          defaultProfile,
-          version,
-        }).then((proxy) => {
-          // EADDRINUSE is emitted asynchronously on the server – the
-          // promise from startProxyServer resolves before the error
-          // fires.  We must listen for it explicitly.
-          const onError = (err: NodeJS.ErrnoException) => {
-            reject(err)
-          }
-          proxy.server.once("error", onError)
+    new Promise<Awaited<ReturnType<StartProxyServer>>>((resolve, reject) => {
+      startProxyServer({
+        port: p,
+        host,
+        silent: true,
+        profiles,
+        defaultProfile,
+        version,
+      }).then((proxy) => {
+        // EADDRINUSE is emitted asynchronously on the server – the
+        // promise from startProxyServer resolves before the error
+        // fires.  We must listen for it explicitly.
+        const onError = (err: NodeJS.ErrnoException) => {
+          reject(err)
+        }
+        proxy.server.once("error", onError)
 
-          // If the server is already listening (address() is set),
-          // we're good.  Otherwise wait for the "listening" event.
-          if (proxy.server.listening) {
+        // If the server is already listening (address() is set),
+        // we're good.  Otherwise wait for the "listening" event.
+        if (proxy.server.listening) {
+          proxy.server.removeListener("error", onError)
+          resolve(proxy)
+        } else {
+          proxy.server.once("listening", () => {
             proxy.server.removeListener("error", onError)
             resolve(proxy)
-          } else {
-            proxy.server.once("listening", () => {
-              proxy.server.removeListener("error", onError)
-              resolve(proxy)
-            })
-          }
-        }, reject)
-      }
-    )
+          })
+        }
+      }, reject)
+    })
 
   const attempt = async (p: number) => {
     try {
@@ -150,7 +146,7 @@ export async function startProxy(opts: StartProxyOptions): Promise<ProxyHandle> 
   const addr = proxy.server.address() as AddressInfo | null
   const actualPort = addr?.port ?? proxy.config?.port ?? DEFAULT_PORT
 
-  void log?.( "info", `Claude Max proxy running on port ${actualPort}`)
+  void log?.("info", `Claude Max proxy running on port ${actualPort}`)
 
   return {
     port: actualPort,
@@ -176,7 +172,10 @@ export interface HealthResult {
   renewalRequiredSoon?: boolean
 }
 
-type RenewalFields = Pick<HealthResult, "daysUntilRenewal" | "renewalRequiredSoon">
+type RenewalFields = Pick<
+  HealthResult,
+  "daysUntilRenewal" | "renewalRequiredSoon"
+>
 
 /**
  * Read the login-renewal fields Meridian added to /health in 1.58.0. Older
@@ -228,12 +227,14 @@ export async function checkProxyHealth(
     const res = await fetch(getProxyBaseURL(port) + "/health", {
       signal: AbortSignal.timeout(HEALTH_TIMEOUT_MS),
     })
-    const body = await res.json() as Record<string, unknown>
+    const body = (await res.json()) as Record<string, unknown>
     // Meridian answers with the literal string "unknown" when it has no
     // version to report, which carries no information worth logging.
     const reported = body.version
     const version =
-      typeof reported === "string" && reported !== "unknown" ? reported : undefined
+      typeof reported === "string" && reported !== "unknown"
+        ? reported
+        : undefined
     const renewal = readRenewal(body.auth)
 
     // The plugin embeds Meridian as a library, so nothing else tells a user
@@ -270,12 +271,11 @@ export async function checkProxyHealth(
         ? body.error
         : `Proxy health check returned status: ${body.status ?? res.status}`
 
-    void log?.( "error", `[claude-max] ${detail}`)
+    void log?.("error", `[claude-max] ${detail}`)
     return { ok: false, message: detail, version, ...renewal }
   } catch (err) {
-    const msg =
-      err instanceof Error ? err.message : String(err)
-    void log?.( "error", `[claude-max] Health check failed: ${msg}`)
+    const msg = err instanceof Error ? err.message : String(err)
+    void log?.("error", `[claude-max] Health check failed: ${msg}`)
     return { ok: false, message: `Health check failed: ${msg}` }
   }
 }

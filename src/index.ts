@@ -1,6 +1,7 @@
 import type { Plugin, PluginModule } from "@opencode-ai/plugin"
 import type { Plugin as OpenCodeV2 } from "@opencode/plugin"
 import { scrubOpencodeFingerprints } from "@rynfar/meridian-plugin-opencode-scrub"
+import path from "node:path"
 
 import {
   COMPACTION_AGENT,
@@ -11,10 +12,7 @@ import {
   type RequestIdentity,
 } from "./headers"
 import { createConsoleLogger, createLogger, type LogFn } from "./logger"
-import {
-  loadMeridianConfig,
-  summarizeMeridianConfig,
-} from "./meridian-config"
+import { loadMeridianConfig, summarizeMeridianConfig } from "./meridian-config"
 import {
   checkProxyHealth,
   getProxyBaseURL,
@@ -49,10 +47,10 @@ let sharedRuntime: SharedRuntime | undefined
 
 async function acquireRuntime(log: LogFn) {
   while (sharedRuntime?.closing) await sharedRuntime.closing
-  const shared = sharedRuntime ??= {
+  const shared = (sharedRuntime ??= {
     ready: startRuntime(log),
     users: 0,
-  }
+  })
   shared.users++
 
   let runtime: Runtime
@@ -99,7 +97,7 @@ async function startRuntime(log: LogFn): Promise<Runtime> {
   let closing: Promise<void> | undefined
   proxy.close = () => {
     unregisterCleanup()
-    return closing ??= close()
+    return (closing ??= close())
   }
 
   // Deliberately not awaited: this only produces log lines, and /health can
@@ -119,6 +117,61 @@ function scrubSystemPrompt(system: string[]): string | undefined {
   const joined = system.join("\n\n")
   const scrubbed = scrubOpencodeFingerprints(joined)
   return scrubbed === joined ? undefined : scrubbed
+}
+
+// Managed services own auth/configuration and startup/shutdown. Never acquire
+// a shared embedded runtime (or its process cleanup listeners) in this mode.
+function externalRuntime(value: unknown) {
+  const message =
+    "externalBaseURL must be a loopback HTTP origin with an explicit port"
+  if (typeof value !== "string") throw new Error(message)
+  let url: URL
+  try {
+    url = new URL(value)
+  } catch {
+    throw new Error(message)
+  }
+  if (
+    !/^http:\/\/(?:127\.0\.0\.1|\[::1\]):\d+(?:\/|$)/.test(value) ||
+    url.username ||
+    url.password ||
+    url.pathname !== "/" ||
+    url.search ||
+    url.hash
+  ) {
+    throw new Error(message)
+  }
+  return { baseURL: url.origin, release: async () => {} }
+}
+
+function sessionSystemPrompt(system: string[], directory: string) {
+  if (
+    !(path.posix.isAbsolute(directory) || path.win32.isAbsolute(directory)) ||
+    directory.trim() !== directory ||
+    /[\r\n\0<>]/.test(directory)
+  ) {
+    throw new Error("Meridian requires a valid absolute session directory")
+  }
+  // Meridian extracts cwd before its own prompt scrub. Replace earlier cwd
+  // records so a replay or another context hook cannot leave a stale first match.
+  const withoutDirectory = system.map((text) =>
+    text.replace(/<env>[\s\S]*?<\/env>/gi, (block) => {
+      const clean = block.replace(
+        /[ \t]*Working directory:[^\r\n<]*\r?\n?/gi,
+        ""
+      )
+      return /^<env>\s*<\/env>$/i.test(clean) ? "" : clean
+    })
+  )
+  const scrubbed = scrubSystemPrompt(withoutDirectory)
+  return {
+    scrubbed:
+      scrubbed ??
+      (withoutDirectory.some((text, i) => text !== system[i])
+        ? withoutDirectory.join("\n\n")
+        : undefined),
+    directory: `<env>\nWorking directory: ${directory}\n</env>`,
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -187,7 +240,7 @@ const server: Plugin = async ({ client }) => {
         agentMode: resolveAgentMode(
           agentName,
           hasAgentObject ? agent.mode : undefined,
-          agentModes,
+          agentModes
         ),
         detached: DETACHED_AGENTS.has(agentName.toLowerCase()),
       }
@@ -195,7 +248,7 @@ const server: Plugin = async ({ client }) => {
 
       output.headers["x-opencode-request"] = incoming.message.id
       output.headers["x-opencode-request-kind"] = humanMessages.has(
-        messageKey(incoming.sessionID, incoming.message.id),
+        messageKey(incoming.sessionID, incoming.message.id)
       )
         ? "human"
         : "synthetic"
@@ -216,7 +269,7 @@ type Registration = { dispose: () => Promise<void> }
  */
 function identityV2(
   input: { sessionID: string; agent: unknown; kind: string },
-  agentModes: ReadonlyMap<string, string>,
+  agentModes: ReadonlyMap<string, string>
 ): RequestIdentity {
   const agentName = safeAgentName(input.agent)
   const key = agentName.toLowerCase()
@@ -243,21 +296,27 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
   const agentModes = new Map<string, string>()
   const registrations: Registration[] = []
 
-  const { release, baseURL } = await acquireRuntime(log)
+  const { release, baseURL } =
+    ctx.options?.externalBaseURL === undefined
+      ? await acquireRuntime(log)
+      : externalRuntime(ctx.options.externalBaseURL)
   // The Anthropic SDK resolves `/messages` (and `/models`) against this, so
   // it needs the version segment that v1 provider config used to carry.
   const anthropicBaseURL = `${baseURL}/v1`
 
   const dispose = async () => {
     const results = await Promise.allSettled(
-      registrations.splice(0).map((registration) => registration.dispose()),
+      registrations.splice(0).map((registration) => registration.dispose())
     )
     await release()
     const failures = results.flatMap((result) =>
-      result.status === "rejected" ? [result.reason] : [],
+      result.status === "rejected" ? [result.reason] : []
     )
     if (failures.length > 0) {
-      throw new AggregateError(failures, `${PLUGIN_ID}: failed to dispose hooks`)
+      throw new AggregateError(
+        failures,
+        `${PLUGIN_ID}: failed to dispose hooks`
+      )
     }
   }
 
@@ -270,7 +329,7 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
         for (const agent of editor.list()) {
           agentModes.set(String(agent.id).toLowerCase(), agent.mode)
         }
-      }),
+      })
     )
 
     registrations.push(
@@ -280,8 +339,8 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
           input.baseURL = anthropicBaseURL
           applyMeridianHeaders(input.headers, identityV2(input, agentModes))
         },
-        { providerID: ANTHROPIC },
-      ),
+        { providerID: ANTHROPIC }
+      )
     )
 
     // `model.request` is not the last word on headers: OpenCode 2's Anthropic
@@ -299,27 +358,39 @@ const setup: OpenCodeV2.Plugin["setup"] = async (ctx) => {
         (input) => {
           input.request.headers.delete("anthropic-beta")
         },
-        { providerID: ANTHROPIC },
-      ),
+        { providerID: ANTHROPIC }
+      )
     )
 
     // Every request that carries a system prompt: the agent loop, compaction,
     // titles, and plugin-driven generation.
-    for (const name of ["context", "compaction", "title", "generate"] as const) {
+    for (const name of [
+      "context",
+      "compaction",
+      "title",
+      "generate",
+    ] as const) {
       registrations.push(
         await ctx.session.hook(
           name,
-          (input) => {
-            const scrubbed = scrubSystemPrompt(input.system.map((part) => part.text))
+          async (input) => {
+            const session = await ctx.session.get({
+              sessionID: input.sessionID,
+            })
+            const { scrubbed, directory } = sessionSystemPrompt(
+              input.system.map((part) => part.text),
+              session.location.directory
+            )
             if (scrubbed !== undefined) {
               input.system.splice(0, input.system.length, {
                 type: "text",
                 text: scrubbed,
               })
             }
+            input.system.push({ type: "text", text: directory })
           },
-          { providerID: ANTHROPIC },
-        ),
+          { providerID: ANTHROPIC }
+        )
       )
     }
   } catch (error) {

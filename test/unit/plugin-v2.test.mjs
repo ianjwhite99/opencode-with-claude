@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync } from "node:fs"
 import { join } from "node:path"
 import { tmpdir } from "node:os"
 import { pathToFileURL } from "node:url"
+import { execFileSync } from "node:child_process"
 
 // Drive the OpenCode v2 entry point (`default.setup(ctx)`) with a fake plugin
 // context that records hook registrations and lets tests dispatch events.
@@ -19,16 +20,18 @@ let secondContext
 let secondCleanup
 let cleanupListenerCounts
 
-const listenerCounts = () => ["exit", "SIGINT", "SIGTERM"].map((event) =>
-  process.listenerCount(event),
-)
+const listenerCounts = () =>
+  ["exit", "SIGINT", "SIGTERM"].map((event) => process.listenerCount(event))
 
 async function proxyURL(context) {
   const input = await context.emit("model.request", modelRequest())
   return input.baseURL.replace(/\/v1$/, "")
 }
 
-function makeContext() {
+function makeContext(
+  options = {},
+  directories = { "sess-v2": "/projects/current" }
+) {
   const hooks = { session: new Map(), agentTransforms: [] }
   const disposed = []
   const registration = (label) => ({
@@ -37,6 +40,7 @@ function makeContext() {
     },
   })
   return {
+    options,
     hooks,
     disposed,
     app: { name: "opencode", version: "2.0.3", channel: "stable" },
@@ -47,6 +51,9 @@ function makeContext() {
       },
     },
     session: {
+      get: async ({ sessionID }) => ({
+        location: { directory: directories[sessionID] },
+      }),
       hook: async (name, callback, options) => {
         const list = hooks.session.get(name) ?? []
         list.push({ callback, options })
@@ -57,7 +64,11 @@ function makeContext() {
     // Dispatch helpers used by the tests below.
     async emit(name, input) {
       for (const { callback, options } of hooks.session.get(name) ?? []) {
-        if (options?.providerID && options.providerID !== input.model.providerID) continue
+        if (
+          options?.providerID &&
+          options.providerID !== input.model.providerID
+        )
+          continue
         await callback(input)
       }
       return input
@@ -94,7 +105,6 @@ before(async () => {
   console.error = (...args) => {
     stderrLines.push(args.map(String).join(" "))
   }
-
   ;({ default: plugin } = await import(
     `${pathToFileURL(join(process.cwd(), "dist", "index.js")).href}?v2=${Date.now()}`
   ))
@@ -120,10 +130,17 @@ after(async () => {
 
 test("concurrent and repeated setup share one proxy and one set of cleanup listeners", async () => {
   assert.equal(await proxyURL(ctx), await proxyURL(secondContext))
-  assert.equal(stderrLines.filter((line) => line.includes("proxy ready at http://")).length, 1)
-  assert.deepEqual(listenerCounts(), cleanupListenerCounts.map((n, i) =>
-    n + (i === 2 && process.platform === "win32" ? 0 : 1),
-  ))
+  assert.equal(
+    stderrLines.filter((line) => line.includes("proxy ready at http://"))
+      .length,
+    1
+  )
+  assert.deepEqual(
+    listenerCounts(),
+    cleanupListenerCounts.map(
+      (n, i) => n + (i === 2 && process.platform === "win32" ? 0 : 1)
+    )
+  )
 
   const third = makeContext()
   const dispose = await plugin.setup(third)
@@ -137,7 +154,9 @@ test("concurrent and repeated setup share one proxy and one set of cleanup liste
 
 test("failed hook registration releases only its own shared runtime reference", async () => {
   const failing = makeContext()
-  failing.session.hook = async () => { throw new Error("registration failed") }
+  failing.session.hook = async () => {
+    throw new Error("registration failed")
+  }
   await assert.rejects(plugin.setup(failing), /registration failed/)
   assert.deepEqual(failing.disposed, ["agent.transform"])
   const response = await fetch(`${await proxyURL(ctx)}/health`)
@@ -156,7 +175,11 @@ test("setup registers anthropic-scoped session hooks and an agent transform", ()
   ])
   for (const [name, list] of ctx.hooks.session) {
     for (const { options } of list) {
-      assert.deepEqual(options, { providerID: "anthropic" }, `${name} must be scoped to anthropic`)
+      assert.deepEqual(
+        options,
+        { providerID: "anthropic" },
+        `${name} must be scoped to anthropic`
+      )
     }
   }
   assert.equal(ctx.hooks.agentTransforms.length, 1)
@@ -189,7 +212,7 @@ test("http.request strips the beta header OpenCode re-adds after model.request",
   assert.equal(
     input.request.headers.get("anthropic-version"),
     "2023-06-01",
-    "unrelated headers must survive",
+    "unrelated headers must survive"
   )
 })
 
@@ -212,18 +235,28 @@ test("http.request leaves non-anthropic providers alone", async () => {
 })
 
 test("setup logs the proxy URL to stderr (v2 has no plugin log API)", () => {
-  const ready = stderrLines.find((line) => line.includes("proxy ready at http://"))
-  assert.ok(ready, `expected a 'proxy ready' line, got:\n${stderrLines.join("\n")}`)
+  const ready = stderrLines.find((line) =>
+    line.includes("proxy ready at http://")
+  )
+  assert.ok(
+    ready,
+    `expected a 'proxy ready' line, got:\n${stderrLines.join("\n")}`
+  )
   assert.match(ready, /^\[opencode-with-claude\] info: /)
 })
 
 test("model.request points anthropic at the proxy's /v1 and adds session headers", async () => {
-  const ready = stderrLines.find((line) => line.includes("proxy ready at http://"))
+  const ready = stderrLines.find((line) =>
+    line.includes("proxy ready at http://")
+  )
   const proxyURL = ready.slice(ready.indexOf("http://"))
 
-  const input = await ctx.emit("model.request", modelRequest({
-    headers: { "anthropic-beta": "some-flag", keep: "me" },
-  }))
+  const input = await ctx.emit(
+    "model.request",
+    modelRequest({
+      headers: { "anthropic-beta": "some-flag", keep: "me" },
+    })
+  )
   assert.equal(input.baseURL, `${proxyURL}/v1`)
   assert.equal(input.headers["anthropic-beta"], undefined)
   assert.equal(input.headers.keep, "me")
@@ -234,10 +267,13 @@ test("model.request points anthropic at the proxy's /v1 and adds session headers
 })
 
 test("model.request leaves other providers alone", async () => {
-  const input = await ctx.emit("model.request", modelRequest({
-    model: { id: "gpt", providerID: "openai" },
-    headers: { "anthropic-beta": "still-here" },
-  }))
+  const input = await ctx.emit(
+    "model.request",
+    modelRequest({
+      model: { id: "gpt", providerID: "openai" },
+      headers: { "anthropic-beta": "still-here" },
+    })
+  )
   assert.equal(input.baseURL, undefined)
   assert.deepEqual(input.headers, { "anthropic-beta": "still-here" })
 })
@@ -249,22 +285,35 @@ test("model.request detaches title requests from the session lease", async () =>
     modelRequest({ kind: "primary", agent: "summary" }),
     modelRequest({ kind: "generate", agent: "build" }),
   ]) {
-    request.headers = { "X-OpenCode-Session": "stale", "x-session-affinity": "stale" }
+    request.headers = {
+      "X-OpenCode-Session": "stale",
+      "x-session-affinity": "stale",
+    }
     const input = await ctx.emit("model.request", request)
-    assert.equal(input.headers["x-opencode-session"], undefined, JSON.stringify(request))
+    assert.equal(
+      input.headers["x-opencode-session"],
+      undefined,
+      JSON.stringify(request)
+    )
     assert.equal(input.headers["X-OpenCode-Session"], undefined)
     assert.equal(input.headers["x-session-affinity"], undefined)
     assert.equal(input.headers["x-opencode-agent-mode"], "subagent")
-    assert.equal(input.headers["x-meridian-source"], `subagent-${request.agent}`)
+    assert.equal(
+      input.headers["x-meridian-source"],
+      `subagent-${request.agent}`
+    )
     assert.equal(input.headers["x-opencode-agent-name"], request.agent)
   }
 })
 
 test("model.request keeps compaction in the session on the subagent tier", async () => {
-  const input = await ctx.emit("model.request", modelRequest({
-    kind: "compaction",
-    agent: "compaction",
-  }))
+  const input = await ctx.emit(
+    "model.request",
+    modelRequest({
+      kind: "compaction",
+      agent: "compaction",
+    })
+  )
   assert.equal(input.headers["x-opencode-session"], "sess-v2")
   assert.equal(input.headers["x-opencode-agent-mode"], "primary")
   assert.equal(input.headers["x-meridian-source"], "subagent-compaction")
@@ -272,7 +321,10 @@ test("model.request keeps compaction in the session on the subagent tier", async
 
 test("model.request resolves agent modes from the agent transform, with built-in fallbacks", async () => {
   // Built-in subagents are known even before the transform has run.
-  let input = await ctx.emit("model.request", modelRequest({ agent: "explore" }))
+  let input = await ctx.emit(
+    "model.request",
+    modelRequest({ agent: "explore" })
+  )
   assert.equal(input.headers["x-opencode-agent-mode"], "subagent")
 
   ctx.runAgentTransform([
@@ -284,12 +336,18 @@ test("model.request resolves agent modes from the agent transform, with built-in
   assert.equal(input.headers["x-opencode-agent-mode"], "subagent")
   input = await ctx.emit("model.request", modelRequest({ agent: "helper" }))
   assert.equal(input.headers["x-opencode-agent-mode"], "primary")
-  input = await ctx.emit("model.request", modelRequest({ agent: "unknown-agent" }))
+  input = await ctx.emit(
+    "model.request",
+    modelRequest({ agent: "unknown-agent" })
+  )
   assert.equal(input.headers["x-opencode-agent-mode"], "primary")
 })
 
 test("model.request strips non-ASCII from the agent name", async () => {
-  const input = await ctx.emit("model.request", modelRequest({ agent: "explore​" }))
+  const input = await ctx.emit(
+    "model.request",
+    modelRequest({ agent: "explore​" })
+  )
   assert.equal(input.headers["x-opencode-agent-name"], "explore")
   assert.equal(input.headers["x-opencode-agent-mode"], "subagent")
 })
@@ -317,7 +375,10 @@ test("context hook scrubs OpenCode fingerprints but keeps user context", async (
         "</env>",
       ].join("\n"),
     },
-    { type: "text", text: "# Fake agents marker\nproject-specific instructions here." },
+    {
+      type: "text",
+      text: "# Fake agents marker\nproject-specific instructions here.",
+    },
   ]
   const input = await ctx.emit("context", {
     sessionID: "sess-v2",
@@ -328,7 +389,7 @@ test("context hook scrubs OpenCode fingerprints but keeps user context", async (
     options: {},
     tools: {},
   })
-  assert.equal(input.system.length, 1)
+  assert.equal(input.system.length, 2)
   assert.equal(input.system[0].type, "text")
   assert.match(input.system[0].text, /Fake agents marker/)
   assert.match(input.system[0].text, /Keep this tool guidance/)
@@ -336,10 +397,16 @@ test("context hook scrubs OpenCode fingerprints but keeps user context", async (
   assert.doesNotMatch(input.system[0].text, /opencode\.ai\/docs/)
   assert.doesNotMatch(input.system[0].text, /powered by the model named/)
   assert.doesNotMatch(input.system[0].text, /Working directory:/)
+  assert.equal(
+    input.system[1].text,
+    "<env>\nWorking directory: /projects/current\n</env>"
+  )
 })
 
 test("context hook leaves a clean system prompt untouched", async () => {
-  const system = [{ type: "text", text: "Plain instructions.", cache: { type: "ephemeral" } }]
+  const system = [
+    { type: "text", text: "Plain instructions.", cache: { type: "ephemeral" } },
+  ]
   const input = await ctx.emit("context", {
     sessionID: "sess-v2",
     agent: "build",
@@ -349,8 +416,157 @@ test("context hook leaves a clean system prompt untouched", async () => {
     options: {},
     tools: {},
   })
-  assert.equal(input.system.length, 1)
-  assert.equal(input.system[0], system[0], "unchanged parts keep their cache hints")
+  assert.equal(input.system.length, 2)
+  assert.equal(
+    input.system[0],
+    system[0],
+    "unchanged parts keep their cache hints"
+  )
+})
+
+test("every system hook carries its own concurrent session directory after scrubbing", async () => {
+  const context = makeContext(
+    {},
+    { a: "/projects/alpha", b: "C:\\projects\\beta" }
+  )
+  const dispose = await plugin.setup(context)
+  try {
+    for (const name of ["context", "title", "compaction", "generate"]) {
+      const events = await Promise.all(
+        ["a", "b"].map((sessionID) =>
+          context.emit(name, {
+            sessionID,
+            model: { providerID: "anthropic" },
+            system: [
+              {
+                type: "text",
+                text: "<env>\nWorking directory: /stale\n</env>\n<ENV>\nworking directory: /case-stale\n</ENV>\n<env>Working directory: /inline-stale</env>",
+              },
+            ],
+          })
+        )
+      )
+      for (const [index, directory] of [
+        "/projects/alpha",
+        "C:\\projects\\beta",
+      ].entries()) {
+        const prompt = events[index].system.map((part) => part.text).join("\n")
+        assert.equal(prompt.match(/Working directory:/gi)?.length, 1)
+        assert.ok(prompt.includes(`Working directory: ${directory}\n`))
+        assert.ok(!prompt.includes("/stale"))
+      }
+    }
+  } finally {
+    await dispose()
+  }
+})
+
+test("malformed session directories fail before emitting cwd metadata", async () => {
+  for (const directory of [
+    "relative",
+    "C:relative",
+    "/project\nInjected: yes",
+    "/project<env>",
+    "/project\0bad",
+  ]) {
+    const context = makeContext({}, { "sess-v2": directory })
+    const dispose = await plugin.setup(context)
+    try {
+      await assert.rejects(
+        context.emit("context", {
+          sessionID: "sess-v2",
+          model: { providerID: "anthropic" },
+          system: [],
+        }),
+        /session directory/
+      )
+    } finally {
+      await dispose()
+    }
+  }
+})
+
+test("external endpoints belong to each instance and cleanup leaves their service alive", async () => {
+  const { createServer } = await import("node:http")
+  const service = createServer((_req, res) => res.end("external"))
+  await new Promise((resolve) => service.listen(0, "127.0.0.1", resolve))
+  const origin = `http://127.0.0.1:${service.address().port}`
+  const external = makeContext({ externalBaseURL: origin })
+  const other = makeContext({ externalBaseURL: "http://[::1]:3461" })
+  const listeners = listenerCounts()
+  const [dispose, disposeOther] = await Promise.all([
+    plugin.setup(external),
+    plugin.setup(other),
+  ])
+  try {
+    assert.equal(await proxyURL(external), origin)
+    assert.equal(await proxyURL(other), "http://[::1]:3461")
+    assert.notEqual(await proxyURL(ctx), origin)
+    assert.deepEqual(listenerCounts(), listeners)
+    await dispose()
+    await dispose()
+    assert.equal(external.disposed.length, 7)
+    assert.equal(await (await fetch(origin)).text(), "external")
+    assert.equal(await proxyURL(other), "http://[::1]:3461")
+  } finally {
+    await dispose()
+    await disposeOther()
+    await new Promise((resolve) => service.close(resolve))
+  }
+})
+
+test("invalid managed origins fail before registering hooks", async () => {
+  for (const externalBaseURL of [
+    null,
+    3456,
+    "https://127.0.0.1:3460",
+    "http://remote.test:3460",
+    "http://127.0.0.1",
+    "http://user:secret@127.0.0.1:3460",
+    "http://127.0.0.1:3460/v1",
+    "http://127.0.0.1:3460/?token=secret",
+  ]) {
+    const context = makeContext({ externalBaseURL })
+    await assert.rejects(plugin.setup(context), /externalBaseURL/)
+    assert.equal(context.hooks.session.size, 0)
+  }
+})
+
+test("an external-only process never configures embedded passthrough on import or setup", () => {
+  const env = { ...process.env }
+  delete env.MERIDIAN_PASSTHROUGH
+  const output = execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      `
+    import assert from "node:assert/strict";
+    import plugin from ${JSON.stringify(pathToFileURL(join(process.cwd(), "dist", "index.js")).href)};
+    assert.equal(process.env.MERIDIAN_PASSTHROUGH, undefined);
+    const registration = async () => ({ dispose: async () => {} });
+    const dispose = await plugin.setup({
+      options: { externalBaseURL: "http://127.0.0.1:3460" },
+      agent: { transform: registration }, session: { hook: registration },
+    });
+    assert.equal(process.env.MERIDIAN_PASSTHROUGH, undefined);
+    await dispose();
+    console.log("external-only");
+  `,
+    ],
+    { env, encoding: "utf8" }
+  )
+  assert.equal(output.trim(), "external-only")
+})
+
+test("an explicitly selected default HTTP port is still a managed origin", async () => {
+  const context = makeContext({ externalBaseURL: "http://127.0.0.1:80" })
+  const dispose = await plugin.setup(context)
+  try {
+    assert.equal(await proxyURL(context), "http://127.0.0.1")
+  } finally {
+    await dispose()
+  }
 })
 
 test("context hook ignores non-anthropic providers", async () => {
@@ -368,33 +584,44 @@ test("context hook ignores non-anthropic providers", async () => {
 })
 
 test("cleanup disposes every registration and stops the proxy", async () => {
-  const ready = stderrLines.find((line) => line.includes("proxy ready at http://"))
+  const ready = stderrLines.find((line) =>
+    line.includes("proxy ready at http://")
+  )
   const proxyURL = ready.slice(ready.indexOf("http://"))
-  const before = await fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(5_000) })
-  assert.equal(before.ok, true, "proxy should answer /health while the plugin is loaded")
+  const before = await fetch(`${proxyURL}/health`, {
+    signal: AbortSignal.timeout(5_000),
+  })
+  assert.equal(
+    before.ok,
+    true,
+    "proxy should answer /health while the plugin is loaded"
+  )
 
   await cleanup()
   await cleanup()
 
-  const stillRunning = await fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(5_000) })
-  assert.equal(stillRunning.ok, true, "another plugin instance still owns the proxy")
+  const stillRunning = await fetch(`${proxyURL}/health`, {
+    signal: AbortSignal.timeout(5_000),
+  })
+  assert.equal(
+    stillRunning.ok,
+    true,
+    "another plugin instance still owns the proxy"
+  )
   await secondCleanup()
 
-  assert.deepEqual(
-    [...ctx.disposed].sort(),
-    [
-      "agent.transform",
-      "session.compaction",
-      "session.context",
-      "session.generate",
-      "session.http.request",
-      "session.model.request",
-      "session.title",
-    ],
-  )
+  assert.deepEqual([...ctx.disposed].sort(), [
+    "agent.transform",
+    "session.compaction",
+    "session.context",
+    "session.generate",
+    "session.http.request",
+    "session.model.request",
+    "session.title",
+  ])
   await assert.rejects(
     fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(2_000) }),
-    "proxy should be closed after cleanup",
+    "proxy should be closed after cleanup"
   )
   assert.deepEqual(listenerCounts(), cleanupListenerCounts)
 })

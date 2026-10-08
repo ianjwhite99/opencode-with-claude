@@ -97,6 +97,27 @@ In both cases the `baseURL` is only a placeholder: the plugin rewrites every
 Anthropic request to whatever port its own proxy actually got, so several
 OpenCode instances can run side by side.
 
+### Independently managed Meridian (OpenCode 2)
+
+To use an already-running local Meridian, configure an origin without `/v1`:
+
+```json
+{
+  "plugins": [{
+    "package": "opencode-with-claude",
+    "options": { "externalBaseURL": "http://127.0.0.1:3460" }
+  }],
+  "providers": { "anthropic": { "settings": { "apiKey": "dummy" } } }
+}
+```
+
+Only HTTP loopback origins (`127.0.0.1` or `[::1]`) with an explicit port are
+accepted. Each plugin instance retains its selected endpoint. The service owns
+authentication, profiles, passthrough configuration, startup and shutdown;
+plugin disposal releases only its hooks. Configure that service for OpenCode
+passthrough (`MERIDIAN_PASSTHROUGH=true`, `MERIDIAN_DEFAULT_AGENT=opencode`).
+Omitting the option keeps embedded mode. OpenCode 1.x retains embedded mode.
+
 If you installed with Homebrew, point the plugin entry at the installed
 file instead of the package name (the path is stable across upgrades, and
 `brew info opencode-with-claude` prints it):
@@ -105,7 +126,14 @@ file instead of the package name (the path is stable across upgrades, and
 "plugin": ["file:///opt/homebrew/opt/opencode-with-claude/libexec/lib/node_modules/opencode-with-claude/dist/index.js"]
 ```
 
-(`"plugins": [...]` on OpenCode 2.) On Linux or Intel macOS replace
+On OpenCode 2, use the installed package directory so its manifest resolves the
+entrypoint:
+
+```json
+"plugins": [{ "package": "/opt/homebrew/opt/opencode-with-claude/libexec/lib/node_modules/opencode-with-claude" }]
+```
+
+On Linux or Intel macOS replace
 `/opt/homebrew` with your Homebrew prefix (`brew --prefix`, usually
 `/home/linuxbrew/.linuxbrew` or `/usr/local`).
 
@@ -176,7 +204,11 @@ This plugin does not edit Meridian's SDK feature file. When Meridian's default
 client prompt pass-through is enabled, the plugin scrubs OpenCode-identifying
 prompt fingerprints with `@rynfar/meridian-plugin-opencode-scrub` before
 forwarding. User context such as `AGENTS.md` and configured instructions is
-preserved, while cwd is forwarded to Meridian through the process environment.
+preserved. OpenCode 2 forwards each session's directory in one canonical `<env>`
+record after scrubbing, including title, compaction and generation requests.
+Concurrent projects do not set a process-global cwd. Meridian's explicit cwd
+overrides still take precedence; a directory unavailable on the Meridian host
+uses Meridian's existing local fallback.
 
 ```json
 {
