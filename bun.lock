@@ -6,7 +6,7 @@
       "name": "opencode-with-claude",
       "dependencies": {
         "@rynfar/meridian": "1.79.0",
-        "@rynfar/meridian-plugin-opencode-scrub": "0.2.0",
+        "@rynfar/meridian-plugin-opencode-scrub": "0.2.3",
       },
       "devDependencies": {
         "@opencode-ai/plugin": "^1.18.3",
@@ -372,7 +372,7 @@
 
     "@rynfar/meridian": ["@rynfar/meridian@1.79.0", "", { "dependencies": { "@anthropic-ai/claude-agent-sdk": "^0.2.141", "@anthropic-ai/claude-code": "^2.1.284", "ajv": "^8.20.0", "ajv-formats": "^3.0.1", "cross-spawn": "7.0.6", "jsonc-parser": "^3.3.1", "libsql": "^0.5.29", "zod": "4.4.3" }, "bin": { "meridian": "dist/cli.js", "claude-max-proxy": "dist/cli.js" } }, "sha512-ZB40fhpDX9nuz68pgHcTTGa/ThPKhQHnhTbAguXw7wx1PNqTHkAxWLqj+tyPSm+pjo3M93oJ+SQc2VhS59gxaA=="],
 
-    "@rynfar/meridian-plugin-opencode-scrub": ["@rynfar/meridian-plugin-opencode-scrub@0.2.0", "", { "peerDependencies": { "@rynfar/meridian": "*" }, "optionalPeers": ["@rynfar/meridian"] }, "sha512-RaXNkIwPB2NmicdNvDmYLKbLz5KsnAlNt3XfuejstPpMZBbogxhi6JSsU3k6nHGj/yoYmbpLYMGD4Bv4v30Tvg=="],
+    "@rynfar/meridian-plugin-opencode-scrub": ["@rynfar/meridian-plugin-opencode-scrub@0.2.3", "", { "peerDependencies": { "@rynfar/meridian": "*" }, "optionalPeers": ["@rynfar/meridian"] }, "sha512-JOlxV0VAbWcXGTC+bsi4K2d4g3vb2UG5y8s1HzKjWkeAm7kmdIYcHbPie+ror2HTaNaRKIpzGOkPqqonEgs5YA=="],
 
     "@sigstore/bundle": ["@sigstore/bundle@4.0.0", "", { "dependencies": { "@sigstore/protobuf-specs": "^0.5.0" } }, "sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A=="],
 

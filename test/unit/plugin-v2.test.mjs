@@ -350,7 +350,8 @@ test("context hook scrubs OpenCode fingerprints but keeps user context", async (
   assert.doesNotMatch(input.system[0].text, /OpenCode/)
   assert.doesNotMatch(input.system[0].text, /opencode\.ai\/docs/)
   assert.doesNotMatch(input.system[0].text, /powered by the model named/)
-  assert.doesNotMatch(input.system[0].text, /Working directory:/)
+  assert.doesNotMatch(input.system[0].text, /useful information about the environment/)
+  assert.match(input.system[0].text, /<env>\s*[\s\S]*?Working directory:\s*\/tmp\/project\n/)
 })
 
 test("context hook leaves a clean system prompt untouched", async () => {
