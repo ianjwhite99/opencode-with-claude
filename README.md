@@ -191,7 +191,8 @@ This plugin does not edit Meridian's SDK feature file. When Meridian's default
 client prompt pass-through is enabled, the plugin scrubs OpenCode-identifying
 prompt fingerprints with `@rynfar/meridian-plugin-opencode-scrub` before
 forwarding. User context such as `AGENTS.md` and configured instructions is
-preserved, while cwd is forwarded to Meridian through the process environment.
+preserved, and so is a bare `<env>` block with the `Working directory` line,
+which Meridian reads to run each session in the right project directory.
 
 ```json
 {
@@ -243,13 +244,15 @@ nothing else. Either way the plugin logs which build it is running, so a bug
 report can name it:
 
 ```
-meridian 1.79.0 (bundled)
-meridian 1.80.0 (external: /opt/homebrew/lib/node_modules/@rynfar/meridian)
+meridian 1.89.0 (bundled)
+meridian 1.90.0 (external: /opt/homebrew/lib/node_modules/@rynfar/meridian)
 ```
 
 A swapped build has to keep the surface the plugin uses: `startProxyServer`
 returning `{ server, config.port, close() }`, and a `/health` response carrying
 `status`, `error`, `version`, and `auth.{daysUntilRenewal,renewalRequiredSoon}`.
+Builds older than the bundled one also miss behaviour the plugin now relies on
+— e.g. before 1.87.0, OpenCode 2 compaction runs on the 200k tier.
 
 ### Switching profiles at runtime
 

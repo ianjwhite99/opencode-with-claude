@@ -191,8 +191,11 @@ test("system.transform scrubs OpenCode fingerprints and keeps user context", asy
   assert.doesNotMatch(scrubbed, /github\.com\/anomalyco\/opencode/)
   assert.doesNotMatch(scrubbed, /opencode\.ai\/docs/)
   assert.doesNotMatch(scrubbed, /powered by the model named/)
-  assert.doesNotMatch(scrubbed, /<env>/)
-  assert.doesNotMatch(scrubbed, /Working directory:/)
+  assert.doesNotMatch(scrubbed, /useful information about the environment/)
+  // The scrub runs client-side here, before Meridian sees the prompt. The
+  // bare working-directory line is the only place Meridian can read the
+  // project path from to pick the SDK session's cwd, so it must survive.
+  assert.match(scrubbed, /<env>\n\s*Working directory: \/tmp\/project\n<\/env>/)
 })
 
 test("system.transform ignores non-anthropic providers", async () => {

@@ -270,6 +270,16 @@ export async function checkProxyHealth(
       return { ok: true, message: detail, version, ...renewal }
     }
 
+    // Meridian 1.82+ answers 503 "draining" once `POST /drain` has asked it
+    // to finish in-flight work before a restart. That is a deliberate state,
+    // not a fault, and new requests are held rather than refused.
+    if (body.status === "draining") {
+      const detail =
+        typeof body.message === "string" ? body.message : "Meridian is draining"
+      void log?.("warn", `[claude-max] ${detail}`)
+      return { ok: false, message: detail, version, ...renewal }
+    }
+
     // "unhealthy" or unexpected status
     const detail =
       typeof body.error === "string"
