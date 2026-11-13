@@ -35,8 +35,15 @@ export interface RequestIdentity {
 /** Hidden one-shot agents OpenCode runs concurrently with the primary turn. */
 export const DETACHED_AGENTS: ReadonlySet<string> = new Set(["title", "summary"])
 
-/** Compaction runs in the session's lineage but on the subagent model tier. */
+/** Compaction runs in the session's lineage and on the conversation's tier. */
 export const COMPACTION_AGENT = "compaction"
+
+/**
+ * `x-meridian-source` for attached compaction. Meridian (1.87+) keeps `fork-`
+ * sources on the conversation's model tier, while any `subagent-` source drops
+ * to the 200k tier — too small to summarize a long 1M-context conversation.
+ */
+export const COMPACTION_SOURCE = "fork-compaction"
 
 /**
  * Modes of OpenCode's built-in agents. Built-ins are not listed in the merged

@@ -227,6 +227,22 @@ test("unhealthy: not ok, version still reported", async () => {
   })
 })
 
+test("draining: reported as a warning, not a failure", async () => {
+  const payload = {
+    status: "draining",
+    version: "1.89.0",
+    message: "Meridian is shutting down; route new requests to another instance.",
+  }
+
+  await withStubHealth({ payload, status: 503 }, ({ result, logs }) => {
+    assert.equal(result.ok, false)
+    assert.equal(result.version, "1.89.0")
+    assert.match(result.message, /shutting down/)
+    assert.ok(findLog(logs, "warn", "shutting down"))
+    assert.equal(logs.some((entry) => entry.level === "error"), false)
+  })
+})
+
 // Meridian's first /health probes the Claude login and answers in ~5s on a
 // cold auth cache, which the original 5s budget lost to by a hair — a healthy
 // proxy reported "Health check failed" on every cold start. Stall the stub past

@@ -140,7 +140,7 @@ test("failed hook registration releases only its own shared runtime reference", 
   failing.session.hook = async () => { throw new Error("registration failed") }
   await assert.rejects(plugin.setup(failing), /registration failed/)
   assert.deepEqual(failing.disposed, ["agent.transform"])
-  const response = await fetch(`${await proxyURL(ctx)}/health`)
+  const response = await fetch(`${await proxyURL(ctx)}/livez`)
   assert.equal(response.ok, true)
 })
 
@@ -269,20 +269,34 @@ test("model.request detaches title requests from the session lease", async () =>
     assert.equal(input.headers["x-opencode-session"], undefined, JSON.stringify(request))
     assert.equal(input.headers["X-OpenCode-Session"], undefined)
     assert.equal(input.headers["x-session-affinity"], undefined)
+    // One-shot kinds are named by kind, so Meridian's per-source handling
+    // (e.g. no Claude Code preset for titles) applies whatever agent ran them.
+    const name = request.kind === "primary" ? request.agent : request.kind
     assert.equal(input.headers["x-opencode-agent-mode"], "subagent")
-    assert.equal(input.headers["x-meridian-source"], `subagent-${request.agent}`)
-    assert.equal(input.headers["x-opencode-agent-name"], request.agent)
+    assert.equal(input.headers["x-meridian-source"], `subagent-${name}`)
+    assert.equal(input.headers["x-opencode-agent-name"], name)
   }
 })
 
-test("model.request keeps compaction in the session on the subagent tier", async () => {
-  const input = await ctx.emit("model.request", modelRequest({
-    kind: "compaction",
-    agent: "compaction",
-  }))
-  assert.equal(input.headers["x-opencode-session"], "sess-v2")
-  assert.equal(input.headers["x-opencode-agent-mode"], "primary")
-  assert.equal(input.headers["x-meridian-source"], "subagent-compaction")
+test("model.request names a title request by its kind even when another agent runs it", async () => {
+  const input = await ctx.emit("model.request", modelRequest({ kind: "title", agent: "build" }))
+  assert.equal(input.headers["x-opencode-session"], undefined)
+  assert.equal(input.headers["x-meridian-source"], "subagent-title")
+  assert.equal(input.headers["x-opencode-agent-name"], "title")
+})
+
+test("model.request keeps compaction in the session on the conversation's tier", async () => {
+  for (const request of [
+    modelRequest({ kind: "compaction", agent: "compaction" }),
+    modelRequest({ kind: "compaction", agent: "build" }),
+    modelRequest({ kind: "primary", agent: "compaction" }),
+  ]) {
+    const input = await ctx.emit("model.request", request)
+    assert.equal(input.headers["x-opencode-session"], "sess-v2", JSON.stringify(request))
+    assert.equal(input.headers["x-opencode-agent-mode"], "primary")
+    // `fork-` keeps the 1M tier; a `subagent-` source would drop to 200k.
+    assert.equal(input.headers["x-meridian-source"], "fork-compaction")
+  }
 })
 
 test("model.request resolves agent modes from the agent transform, with built-in fallbacks", async () => {
@@ -350,7 +364,9 @@ test("context hook scrubs OpenCode fingerprints but keeps user context", async (
   assert.doesNotMatch(input.system[0].text, /OpenCode/)
   assert.doesNotMatch(input.system[0].text, /opencode\.ai\/docs/)
   assert.doesNotMatch(input.system[0].text, /powered by the model named/)
-  assert.doesNotMatch(input.system[0].text, /Working directory:/)
+  assert.doesNotMatch(input.system[0].text, /useful information about the environment/)
+  // Meridian reads the project path from this line to pick the session cwd.
+  assert.match(input.system[0].text, /Working directory: \/tmp\/project/)
 })
 
 test("context hook leaves a clean system prompt untouched", async () => {
@@ -416,13 +432,13 @@ test("V2 request hooks normalize chronological system updates after tool results
 test("cleanup disposes every registration and stops the proxy", async () => {
   const ready = stderrLines.find((line) => line.includes("proxy ready at http://"))
   const proxyURL = ready.slice(ready.indexOf("http://"))
-  const before = await fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(5_000) })
-  assert.equal(before.ok, true, "proxy should answer /health while the plugin is loaded")
+  const before = await fetch(`${proxyURL}/livez`, { signal: AbortSignal.timeout(5_000) })
+  assert.equal(before.ok, true, "proxy should answer /livez while the plugin is loaded")
 
   await cleanup()
   await cleanup()
 
-  const stillRunning = await fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(5_000) })
+  const stillRunning = await fetch(`${proxyURL}/livez`, { signal: AbortSignal.timeout(5_000) })
   assert.equal(stillRunning.ok, true, "another plugin instance still owns the proxy")
   await secondCleanup()
 
@@ -439,7 +455,7 @@ test("cleanup disposes every registration and stops the proxy", async () => {
     ],
   )
   await assert.rejects(
-    fetch(`${proxyURL}/health`, { signal: AbortSignal.timeout(2_000) }),
+    fetch(`${proxyURL}/livez`, { signal: AbortSignal.timeout(2_000) }),
     "proxy should be closed after cleanup",
   )
   assert.deepEqual(listenerCounts(), cleanupListenerCounts)
@@ -454,7 +470,7 @@ test("setup can restart after final disposal, including while close is in flight
   await closing
   const disposeNext = await nextSetup
   try {
-    const response = await fetch(`${await proxyURL(next)}/health`)
+    const response = await fetch(`${await proxyURL(next)}/livez`)
     assert.equal(response.ok, true)
   } finally {
     await disposeNext()
@@ -480,7 +496,7 @@ test("a failed startup is not cached and the next setup can retry", async () => 
   const recovered = makeContext()
   const dispose = await plugin.setup(recovered)
   try {
-    const response = await fetch(`${await proxyURL(recovered)}/health`)
+    const response = await fetch(`${await proxyURL(recovered)}/livez`)
     assert.equal(response.ok, true)
   } finally {
     await dispose()

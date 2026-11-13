@@ -4,6 +4,7 @@ import { scrubOpencodeFingerprints } from "@rynfar/meridian-plugin-opencode-scru
 
 import {
   COMPACTION_AGENT,
+  COMPACTION_SOURCE,
   DETACHED_AGENTS,
   applyMeridianHeaders,
   resolveAgentMode,
@@ -223,23 +224,27 @@ function identityV2(
   input: { sessionID: string; agent: unknown; kind: string },
   agentModes: ReadonlyMap<string, string>,
 ): RequestIdentity {
-  const agentName = safeAgentName(input.agent)
-  const key = agentName.toLowerCase()
-  const detached =
-    input.kind === "title" ||
-    input.kind === "generate" ||
-    DETACHED_AGENTS.has(key)
+  // A title or generate request is named by its kind, not by whichever agent
+  // OpenCode routed it through: Meridian keys per-source behaviour (e.g. no
+  // Claude Code preset for `subagent-title`) on that name.
+  const oneShotKind =
+    input.kind === "title" || input.kind === "generate" ? input.kind : undefined
+  const agentName = oneShotKind ?? safeAgentName(input.agent)
+  const key = safeAgentName(input.agent).toLowerCase()
+  const detached = oneShotKind !== undefined || DETACHED_AGENTS.has(key)
   const compaction = input.kind === "compaction" || key === COMPACTION_AGENT
   return {
     sessionID: String(input.sessionID),
     agentName,
-    // Compaction stays in the session's lineage; the source marker lets
-    // Meridian pick the subagent tier for it without splitting the session.
+    // Compaction stays in the session's lineage and on its model tier: it
+    // carries the history it summarizes, so a 1M-context conversation past
+    // 200k tokens could not compact on the subagent tier. A `fork-` source
+    // marks it without the session-key split an agent-mode change causes.
     agentMode: compaction
       ? "primary"
       : resolveAgentMode(agentName, undefined, agentModes),
     detached,
-    source: compaction && !detached ? "subagent-compaction" : undefined,
+    source: compaction && !detached ? COMPACTION_SOURCE : undefined,
   }
 }
 

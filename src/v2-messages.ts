@@ -13,9 +13,13 @@ type ChronologicalMessage = {
 
 /**
  * Meridian's OpenCode adapter resumes tool checkpoints from user messages.
- * Newer Claude models let OpenCode emit chronological `system` messages,
- * which that adapter cannot consume. Use OpenCode's escaped, lower-authority
- * fallback at the same position instead of losing updates during SDK resume.
+ * Newer Claude models let OpenCode emit chronological `system` messages.
+ * Meridian 1.82+ accepts one only as the final message after a complete tool
+ * result batch, and delivers it as user text either way; an update anywhere
+ * else (e.g. ahead of the user's next prompt) still breaks the resume, as does
+ * any update on an older build loaded via `MERIDIAN_PATH`. Use OpenCode's
+ * escaped, lower-authority fallback at the same position instead of losing
+ * updates during SDK resume.
  */
 export function normalizeSystemUpdates(messages: unknown[]): void {
   const history = messages as ChronologicalMessage[]
